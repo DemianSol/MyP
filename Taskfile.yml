@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: '3'
+
+
+tasks:
+
+  
+
+  default:
+    desc: "Sección para compilar"
+    cmds:
+      - go build -o bin/app ./MyP/src/main/go...
+      - valac --pkg glib-2.0 --pkg gobject-2.0 src/main/vala/ -o bin/app-vala   ##revisar esta parte
+
+    test:
+    desc: "Sección para ejecutar pruebas unitarias"
+    cmds:   
+      - go test -v ./src/test/go/...
+      - valac --pkg glib-2.0 --pkg gobject-2.0 src/test/vala/... -o bin/test-runner-vala
+    
