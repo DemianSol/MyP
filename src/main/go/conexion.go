@@ -17,15 +17,15 @@ type Conexion struct{
 	lector bufio
 	imprimir bufio.Writer
 
-func NewConexion(enchufe net.Conn) *conexion{ //solo puede enviar a la cola
+func NewConexion(enchufe net.Conn) *conexion{ 
 
 	return &conexion{
-		enchufe: enchufe
-		conexionActiva: true
-		contadorConexiones: identificador+1
-		identificador: contadorConexiones+1
-		lector: bufio.NewScanner(os.Stdin)
-		imprimir: bufio.Writer(enchufe) 
+		enchufe: enchufe,
+		conexionActiva: true,
+		contadorConexiones: identificador+1,
+		identificador: contadorConexiones+1,
+		lector: bufio.NewScanner(os.Stdin),
+		imprimir: bufio.NewWriter(enchufe) 
 	}
 }
 
@@ -60,12 +60,16 @@ func (c conexion) recibeMensaje() ([]byte, error){
 
 
 
-func (c* conexion) enviaMensaje(mensaje Mensaje, err error){
+func (c* conexion) enviaMensaje(builder *mensajeClienteBuilder) error{
 
-	m, err := c.imprimir.WriteString(mensaje.toString())
-	
+	json, err := builder.construye()
 	if err != nil{
-		// algo para enviar error a los susarios 
+		return fmt.Errorf("Error al construir el JSON: %w", err) 
+	}
+	c.imprimir.Flush()
+	envia, err := c.imprimir.Write([]byte(json))
+	if err != nil{
+		return fmt.Errorf("Error al enviar por el socket: %w", err) 
 	}
 }
 
