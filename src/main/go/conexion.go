@@ -1,5 +1,5 @@
 import (
-	"erros"
+	"error"
 	"net"
 	"io"
 	"bufio"
@@ -11,18 +11,16 @@ import (
 type Conexion struct{
 
 	enchufe net.Conn
-	buzon chan tarea
 	identificador int 
 	conexionActiva bool
 	contadorConexiones int
 	lector bufio
 	imprimir bufio.Writer
 
-func NewConexion(enchufe net.Dial, buzon chan<- tarea) *conexion{ //solo puede enviar a la cola
+func NewConexion(enchufe net.Conn) *conexion{ //solo puede enviar a la cola
 
 	return &conexion{
 		enchufe: enchufe
-		buzon: buzon
 		conexionActiva: true
 		contadorConexiones: identificador+1
 		identificador: contadorConexiones+1
@@ -32,38 +30,32 @@ func NewConexion(enchufe net.Dial, buzon chan<- tarea) *conexion{ //solo puede e
 }
 
 
-func (c conexion) getIdentificador(){
+func (c conexion) getIdentificador() int{
 	return c.dentificador
 }
 
-func (c conexion) getConexionActiva(){
+func (c conexion) getConexionActiva() bool{
 	return c.conexionActiva
 }
 
 func (c *conexion) desconectar(){
-
 	c.conexionActiva = false
 	return c.enchufe.Close()
 
 }
 
-func (c conexion) recibeMensaje() error{
+func (c conexion) recibeMensaje() ([]byte, error){
 	var err error
      
 	while (conexionActiva){
 		if c.lector.Scan(){
-			texto := lectura.Text()
-			MensajeCliente m, error:= MensajeCliente.getMensaje(texto)
+			bytes := lectura.Bytes()
 			if err != nil{
-				fmt.Errof("Error al procesar mensaje: %w", err)
+				fmt.Errorf("Error al leer el mensaje: %w", err)
 			}
-			buzon <- tarea{conexion, m}
-		}
-		if err != nil{
-			fmt.Error("El mensaje no se leyó correctamente: %w", err)
+			return bytes, nil
 		}
 	}
-	
 }
 
 
