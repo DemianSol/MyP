@@ -4,7 +4,7 @@ import {
 }
 
 
-const{
+const(
 	nuevoUsuario = "NEW_USER"
 	nuevoStatus = "NEW_STATUS"
 	listaUsuario = "USER_LIST"
@@ -15,10 +15,10 @@ const{
 	textoSala = "ROOM_TEXT_FROM"
 	dejaSala = "LEFT_ROOM"
 	desconectar = "DISCONNECTED"
-}
+)
 
 // https://gobyexample.com/json
-type mensajeClienteBuilder{
+type mensajeClienteBuilder struct{
 	data map[string]any
 }
 
@@ -45,7 +45,7 @@ func (m *mensajeClienteBuilder) añadeListaUsuarios(usuarios map[string]string) 
 func (m *mensajeClienteBuilder) construye() (string, error){
 	j, err := json.Marshal(m.data)
 	if err != nil{
-		fmt.Errorf("", err)		
+		return "", fmt.Errorf("Error al construir el JSON para el cliente:%w", err)		
 	}
 	return string(j) + "\n", nil
 }
