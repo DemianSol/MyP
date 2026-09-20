@@ -14,7 +14,10 @@ const(
 	usuariosSala = "ROOM_USER_LIST"
 	textoSala = "ROOM_TEXT_FROM"
 	dejaSala = "LEFT_ROOM"
-	desconectar = "DISCONNECTED"
+	desconectado = "DISCONNECTED"
+	respuesta = "RESPONSE"
+	invitacion = "INVITATION"
+	desconectar = "DISCONNECT"
 )
 
 // https://gobyexample.com/json
@@ -40,6 +43,17 @@ func (m *mensajeClienteBuilder) añadir(llave string, valor string) *mensajeClie
 func (m *mensajeClienteBuilder) añadeListaUsuarios(usuarios map[string]string) *mensajeClienteBuilder{
 	m.data["users"] = usuarios
 	return m
+}
+
+func (m *mensajeClienteBuilder) añadirRespuesta(operacion string, resultado string, extra string)*mensajeClienteBuilder{
+	m.data["type"] = respuesta
+	m.data["operation"] = operacion
+	m.data["result"] = resultado
+	if (extra != ""){
+		m.data["extra"] = extra
+	}
+	return m
+
 }
 
 func (m *mensajeClienteBuilder) construye() (string, error){
