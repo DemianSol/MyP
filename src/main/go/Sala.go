@@ -24,7 +24,7 @@ func (s *Sala) getNombre() string{
 }
 
 
-func (s *Sala) getUsuarios() map[string]*Usuario{
+func (s *Sala) getUsuarios() (map[string]*Usuario){
 	return s.usuariosSala
 }
 
@@ -46,17 +46,17 @@ func (s *Sala) agregarCliente(user *Usuario){
 	s.usuariosSala[user.getNombre()] = user
 }
 
-func (s *Sala) eliminarUsuario (user string){
+func (s *Sala) eliminarUsuario(user string){
 	delete(s.usuariosSala, user)
 }
 
-func (s *Sala) mensajeGeneral (builder *mensajeAClienteBuilder){
+func (s *Sala) mensajeGeneral(builder *mensajeAClienteBuilder){
 	for _, u := range usuariosSala{
 		u.getConexion().enviarMensaje(builder)
 	}
 }
 
-func (s *Sala) mensajePublico (builder *mensajeAClienteBuilder, user *Usuario){
+func (s *Sala) mensajePublico(builder *mensajeAClienteBuilder, user *Usuario){
 	for _, u := range usuariosSala{
 		if (u != user){
 			u.getConexion().enviarMensaje(builder)
