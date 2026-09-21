@@ -55,6 +55,7 @@ func (m mensajeTexto) TipoMensaje() string{
 
 type mensajeTextoPublico struct{
 	Type string `json:"type"`
+	Username string `json:"username"`
 	Text string `json:"text"`
 }
 
@@ -104,6 +105,11 @@ type mensajeTextoSala struct{
 	Roomname string `json:"roomname"`
 	Text string `json:"text"`
 }
+
+func (m mensajeTextoSala) TipoMensaje() string{
+	return m.Type
+}
+
 
 type mensajeDejaSala struct{
 	Type string `json:"type"`
