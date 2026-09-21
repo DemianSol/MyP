@@ -1,33 +1,69 @@
 
 
-type sala struct{
+type Sala struct{
 	nombreSala string
-	usuariosSala map[string]cliente      // el int puede ser la dirección IP del usuario
+	usuariosSala map[string]*Usuario
+	invitados map[string]bool
 }
 
-func NewSala(nombreSala string) *sala{
-	s := sala{nombreSala: nombreSala}
-	s.usuariosSala = make(map[string]cliente)
-	return &s
+func NewSala(nombreSala string, creador *Usuario) *Sala{
+	s := &Sala{ 
+		nombreSala: nombreSala,
+		usuariosSala = make(map[string]*Usuario)
+		invitados = make(map[string]bool),
+	}
+
+	s.usuariosSala[creador.getNombre()] = creador
+	s.invitados[creador.getNombre()] = true
+
+	return s
+}
+
+func (s *Sala) getNombre() string{
+	return s.nombreSala
 }
 
 
-func invitarCliente(clienteNuevo cliente){
+func (s *Sala) getUsuarios() map[string]*Usuario{
+	return s.usuariosSala
+}
 
+func (s *Sala) enSala(user string) bool {
+	u, b := s.usuariosSala[string]
+	return b
+}
+
+func (s *Sala) estaInvitado(user string) bool{
+	return s.invitados[user]
+}
+
+func (s *Sala) invitar(clienteNuevo cliente){
+	s.invitados[clienteNuevo] = true
 }
 
 
-func agregarCliente(clienteNuevo cliente){
-
+func (s *Sala) agregarCliente(user *Usuario){
+	s.usuariosSala[user.getNombre()] = user
 }
 
-func usuariosConectados() map[string]cliente{
-
-} 
-
-
-func abandonaSala(cl cliente){
-
+func (s *Sala) eliminarUsuario (user string){
+	delete(s.usuariosSala, user)
 }
+
+func (s *Sala) mensajeGeneral (builder *mensajeAClienteBuilder){
+	for _, u := range usuariosSala{
+		u.getConexion().enviarMensaje(builder)
+	}
+}
+
+func (s *Sala) mensajePublico (builder *mensajeAClienteBuilder, user *Usuario){
+	for _, u := range usuariosSala{
+		if (u != user){
+			u.getConexion().enviarMensaje(builder)
+		}
+	}
+}
+
+
 
 
