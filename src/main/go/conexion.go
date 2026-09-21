@@ -34,6 +34,8 @@ func (c *conexion) setAceptado(v bool){
 func (c *Conexion) estaAceptador() bool{
 	return c.aceptado
 }
+
+
 func (c conexion) getIdentificador() int{
 	return c.dentificador
 }
