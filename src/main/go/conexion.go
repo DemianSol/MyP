@@ -1,9 +1,7 @@
 import (
 	"error"
 	"net"
-	"io"
 	"bufio"
-	"os"
 	"fmt"
 
 )
@@ -13,23 +11,29 @@ type Conexion struct{
 	enchufe net.Conn
 	identificador int 
 	conexionActiva bool
-	contadorConexiones int
-	lector bufio
-	imprimir bufio.Writer
-
-func NewConexion(enchufe net.Conn) *conexion{ 
+	lector *bufio.Scanner
+	imprimir *bufio.Writer
+	aceptado bool
+}
+func NewConexion(enchufe net.Conn, identificador int) *conexion{ 
 
 	return &conexion{
 		enchufe: enchufe,
 		conexionActiva: true,
-		contadorConexiones: identificador+1,
 		identificador: contadorConexiones+1,
-		lector: bufio.NewScanner(os.Stdin),
+		lector: bufio.NewScanner(enchufe),
 		imprimir: bufio.NewWriter(enchufe) 
+		aceptado: false
 	}
 }
 
+func (c *conexion) setAceptado(v bool){
+	c.aceptado = v
+}
 
+func (c *Conexion) estaAceptador() bool{
+	return c.aceptado
+}
 func (c conexion) getIdentificador() int{
 	return c.dentificador
 }
@@ -44,34 +48,39 @@ func (c *conexion) desconectar(){
 
 }
 
-func (c conexion) recibeMensaje() ([]byte, error){
-	var err error
-     
-	while (conexionActiva){
-		if c.lector.Scan(){
-			bytes := lectura.Bytes()
-			if err != nil{
-				fmt.Errorf("Error al leer el mensaje: %w", err)
-			}
-			return bytes, nil
-		}
+func (c *Conexion) recibeMensaje() ([]byte, error){
+	var bytes []byte
+   	
+	if c.lector.Scan(){
+		bytes, err := c.lector.Bytes()
+		if err != nil{
+			return fmt.Errorf("Error al leer el mensaje: %w", err)
+		}	
 	}
+	return bytes, nil
+
 }
 
 
 
-func (c* conexion) enviaMensaje(builder *mensajeClienteBuilder) error{
+func (c* conexion) enviaMensaje(builder *mensajeAClienteBuilder) error{
 
 	json, err := builder.construye()
 	if err != nil{
 		return fmt.Errorf("Error al construir el JSON: %w", err) 
 	}
-	c.imprimir.Flush()
-	envia, err := c.imprimir.Write([]byte(json))
+
+	jsonSalto := append([]byte(json), '\n')
+	porEnviar, err := c.imprimir.Write(jsonSalto)
 	if err != nil{
-		return fmt.Errorf("Error al enviar por el socket: %w", err) 
+		return fmt.Errorf("Error al enviar por el socket: %w", err)
 	}
+
+	err := c.imprimir.Flush()
+	if err != nil{
+		return fmt.Errorf("Error en flush para el socket: %w", err) 
+	}
+	return nil
 }
 
 
-}
