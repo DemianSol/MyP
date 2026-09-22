@@ -23,22 +23,18 @@ func NewUsuario(nombre string, conexion *Conexion) *Usuario{
 	return u
 }
 
-func (u Usuario) getConexion() *Conexion{
+func (u *Usuario) getConexion() *Conexion{
 	return u.conexion
 }
 
-func (u Usuario) getNombre() string{
+func (u *Usuario) getNombre() string{
 	return u.nombre
 }
 
-func (u Usuario) getStatus() Status{
+func (u *Usuario) getStatus() Status{
 	return u.status
 }
 
 func (u *Usuario) setStatus(status Status) error{
 	u.status = status
-	if err != nil{
-		return fmt.Errorf("Error al asignar el nuevo estatus al usuario")
-	}
-	return nil
 }
