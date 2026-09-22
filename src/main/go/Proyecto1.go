@@ -4,7 +4,8 @@ import(
 	"os"
 )
 
+// https://gobyexample.com/command-line-arguments
 func main(){
-	aplicacion := NewAplicacion(os.Args[1:])
-	aplicacion.Ejectuar()
+	aplicacion := newAplicacion(os.Args[1:])
+	aplicacion.ejecutar()
 }

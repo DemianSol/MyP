@@ -1,12 +1,14 @@
+package main
+
 import (
-	"error"
+	"errors"
 	"net"
 	"bufio"
 	"fmt"
 
 )
 
-type Conexion struct{
+type conexion struct{
 
 	enchufe net.Conn
 	identificador int 
@@ -15,15 +17,15 @@ type Conexion struct{
 	imprimir *bufio.Writer
 	aceptado bool
 }
-func NewConexion(enchufe net.Conn, identificador int) *conexion{ 
+func newConexion(enchufe net.Conn, identificador int) *conexion{ 
 
 	return &conexion{
 		enchufe: enchufe,
 		conexionActiva: true,
 		identificador: contadorConexiones+1,
 		lector: bufio.NewScanner(enchufe),
-		imprimir: bufio.NewWriter(enchufe) 
-		aceptado: false
+		imprimir: bufio.NewWriter(enchufe), 
+		aceptado: false,
 	}
 }
 
@@ -31,13 +33,13 @@ func (c *conexion) setAceptado(v bool){
 	c.aceptado = v
 }
 
-func (c *Conexion) estaAceptador() bool{
+func (c *conexion) estaAceptador() bool{
 	return c.aceptado
 }
 
 
 func (c conexion) getIdentificador() int{
-	return c.dentificador
+	return c.identificador
 }
 
 func (c conexion) getConexionActiva() bool{
@@ -46,11 +48,11 @@ func (c conexion) getConexionActiva() bool{
 
 func (c *conexion) desconectar(){
 	c.conexionActiva = false
-	return c.enchufe.Close()
+	c.enchufe.Close()
 
 }
 
-func (c *Conexion) recibeMensaje() ([]byte, error){
+func (c *conexion) recibeMensaje() ([]byte, error){
 	var bytes []byte
    	
 	if c.lector.Scan(){

@@ -2,10 +2,10 @@
 
 type tarea struct{
 	conn *conexion
-	mensaje Mensaje
+	msj mensaje
 }
 
-func newTarea(conn *conexion, mensaje Mensaje){
+func newTarea(conn *conexion, msj mensaje){
 	return &tarea{
 		conn : conn
 		mensaje : mensaje
@@ -13,10 +13,10 @@ func newTarea(conn *conexion, mensaje Mensaje){
 }
 
 func (t tarea) getConexion(){
-	return t.conexion
+	return t.conn
 }
 
 
 func (t tarea) getMensaje(){
-	return t.mensaje
+	return t.msj
 }

@@ -7,31 +7,31 @@ import (
        "bufio"
        "os"
 )
-type Status string
+type status string
 
 const(
-     AWAY Status : "AWAY"
-     ACTIVE Status: "ACTIVE"
-     BUSY Status: "BUSY"
+     AWAY status : "AWAY"
+     ACTIVE status: "ACTIVE"
+     BUSY status: "BUSY"
 )
 
 type servidor struct{
      puerto string
      enchufe net.Listener
      contadorConexiones int
-     conexiones map[*Conexion]*Usuario
-     clientes map[string]*Usuario // cambiar para manejar clase de Vala
+     conexiones map[*conexion]*usuario
+     clientes map[string]*usuario // cambiar para manejar clase de Vala
      salas map[string]*Sala
      conexionActiva bool
      buzonTareas chan tarea 
 }
 
-func NewServidor(puerto int) *servidor{
+func newServidor(puerto int) *servidor{
      server := servidor{puerto: puerto}
      server.contadorConexiones = 0
-     server.conexiones = make(map[*Conexion]*Usuario)
+     server.conexiones = make(map[*conexion]*usuario)
      server.salas = make(map[string]Sala)
-     server.clientes = make(map[string]*Usuario)
+     server.clientes = make(map[string]*usuario)
      server.lectura = bufio.NewScanner(os.Stdin)
      server.buzonTareas = make(chan <-tarea, 1000) 
      return &server
@@ -57,11 +57,11 @@ func (s *servidor) iniciaServidor() error{
                continue
           }
           s.contadorConexiones++
-          conexion := NewConexion(conn, s.contadorConexiones)
+          conex := newConexion(conn, s.contadorConexiones)
      
-          s.imprimeMensaje("Conexion recibida de: %d", conexion.getIdentificador()) // agregar información 
+          s.imprimeMensaje("Conexion recibida de: %d", conex.getIdentificador()) // agregar información 
           
-          go (s.recibeMensajes(conexion)) 
+          go (s.recibeMensajes(conex)) 
      }
      return nil
 }
@@ -71,14 +71,14 @@ func imprimeMensaje(mensaje string){ //probablemente está mal
      fmt.Println(mensaje)
 }
 
-func (s *servidor) recibeMensajes(con *Conexion){
+func (s *servidor) recibeMensajes(con *conexion){
      // que hago cuando se termine? debo mandar mensaje de desconexion? 
      for {
           bytes, err := con.recibeMensaje()
           if err != nil{
                break
           }
-          msj, err := ProcesaJSON(bytes)
+          msj, err := procesaJSON(bytes)
           if err != nil{
                continue
           }
@@ -98,93 +98,94 @@ func (s *servidor) manejaBuzon() error{ //errores en hilos
      }
 }
 // https://go.dev/doc/effective_go#type_switch
-func (s *servidor) procesaMensaje(conexion *Conexion, mensaje Mensaje) error{
-     if (! conexion.getConexionActiva())
+func (s *servidor) procesaMensaje(conex *conexion, mensaje Mensaje) error{
+     if (! conex.getConexionActiva())
           return nil
 
      switch msj := mensaje.(type) {
 
      case mensajeIdentificar:
 
-          _, user := s.conexiones[conexion]
+          _, user := s.conexiones[conex]
           if (user){
+               conex.desconectar()
                return nil // que debo hacer si un usuario ya identificado intenta volver a identificarse?
           }
 
           if (s.verificaUsuario(msj.Username)){
-               resp := NewMensajeAClienteBuilder(respuesta).
+               resp := newMensajeAClienteBuilder(respuesta).
                añadirRespuesta("IDENTIFY", "USER_ALREADY_EXISTS", msj.Username)
-               s.enviaMensajeUsuario(conexion, resp)
+               s.enviaMensajeUsuario(conex, resp)
                return nil
           }
 
-          nuevoUsuario := NewUsuario(msj.Username, conexion)
+          nuevoUsuario := newUsuario(msj.Username, conex)
           s.clientes[msj.Username] = nuevoUsuario
-          s.conexiones[conexion] = nuevoUsuario
-          conexion.setAceptado(true)
+          s.conexiones[conex] = nuevoUsuario
+          conex.setAceptado(true)
 
 
-          res := NewMensajeAClienteBuilder(respuesta).
+          res := newMensajeAClienteBuilder(respuesta).
           añadirRespuesta("IDENTIFY", "SUCCESS", msj.Username)
-          s.enviaMensajeUsuario(conexion, res)
+          s.enviaMensajeUsuario(conex, res)
 
-          todos := NewMensajeAClienteBuilder(nuevoUsuario).
+          todos := newMensajeAClienteBuilder(nuevoUsuario).
           añadir("username", msj.Username)
-          s.enviaMensajePublico(todos, conexion)
+          s.enviaMensajePublico(todos, conex)
                
           
 
      case mensajeNewStatus: 
-          user, b := s.conexiones[conexion]
+          user, b := s.conexiones[conex]
           if !b{
-               conexion.desconectar()
+               conex.desconectar()
                return nil 
           }
 
-          estado := Status(msj.Status)
+          estado := status(msj.Status)
           if (estado != ACTIVE && estado != AWAY && estado != BUSY){
                return nil
           }
           if (user.getStatus() != estado){
                user.setStatus(estado)
-               builder := NewMensajeAClienteBuilder(nuevoStatus).
+               builder := newMensajeAClienteBuilder(nuevoStatus).
                añadir("username", user.getNombre()).
                añadir("status", string(estado))
-               s.enviaMensajePublico(builder, conexion)
+               s.enviaMensajePublico(builder, conex)
           }
 
 
      case mensajeListaUsuarios: 
-          _, registrado := s.conexiones[conexion]
+          _, registrado := s.conexiones[conex]
           if !registrado {
-            conexion.Desconectar()
+            conex.desconectar()
             return nil
           }
           u := make(map[string]string)
           for _, user := range s.clientes{
                u[user.getNombre()] = string(user.getStatus())
           }
-          builder := NewMensajeAClienteBuilder(listaUsuario).
+          builder := newMensajeAClienteBuilder(listaUsuario).
           añadeListaUsuarios(u)
-          s.enviaMensajeUsuario(conexion, builder)
+          s.enviaMensajeUsuario(conex, builder)
 
      case mensajeTexto:
-          emisor, b := s.conexiones[conexion]
+          emisor, b := s.conexiones[conex]
           if !b{
-               conexion.desconectar()
+               conex.desconectar()
                return nil 
           }
 
           destinatario, user := s.clientes[msj.Username]
           if !user {
-               respuesta := NewMensajeAClienteBuilder(respuesta).
+               respuesta := newMensajeAClienteBuilder(respuesta).
                añadirRespuesta("TEXT", "NO_SUCH_USER", msj.Username)
-               s.enviaMensajeUsuario(conexion, respuesta)
+               s.enviaMensajeUsuario(conex, respuesta)
                return nil
           }
 
 
-          destino := NewMensajeAClienteBuilder(textoDesde).
+          destino := newMensajeAClienteBuilder(textoDesde).
           añadir("username", emisor.getNombre()).
           añadir("text", msj.Text)
           s.enviaMensajeUsuario(destinatario.getConexion(), destino)
@@ -193,13 +194,13 @@ func (s *servidor) procesaMensaje(conexion *Conexion, mensaje Mensaje) error{
 
 
      case mensajeTextoPublico:
-          remitente, b := s.conexiones[conexion]
+          remitente, b := s.conexiones[conex]
           if !b {
-               conexion.desconectar()
+               conex.desconectar()
                return nil 
           }
 
-          msg := NewMensajeAClienteBuilder(textoPublico).
+          msg := newMensajeAClienteBuilder(textoPublico).
           añadir("username", remitente.getNombre()).
           añadir("text", msj.Text)
 
@@ -210,27 +211,27 @@ func (s *servidor) procesaMensaje(conexion *Conexion, mensaje Mensaje) error{
           sala, existe := s.salas[msj.Roomname]
 
           if !existe {
-               remitente, b := s.conexiones[conexion]
+               remitente, b := s.conexiones[conex]
                if !b{
                     coenxion.desconectar()
                }
-               room := NewSala(msj.Roomname, remitente)
+               room := newSala(msj.Roomname, remitente)
                s.salas[msj.Roomname] = room
-               respuesta := NewMensajeAClienteBuilder(respuesta).
+               respuesta := newMensajeAClienteBuilder(respuesta).
                añadirRespuesta("NEW_ROOM", "SUCCESS", msj.Roomname)
-               s.enviaMensajeUsuario(conexion, respuesta)
+               s.enviaMensajeUsuario(conex, respuesta)
                return nil
           }
 
-          answer := NewMensajeAClienteBuilder(respuesta).
+          answer := newMensajeAClienteBuilder(respuesta).
           añadirRespuesta("NEW_ROOM", "ROOM_ALREADY_EXISTS", msj.Roomname)
-          s.enviaMensajeUsuario(conexion, answer)
+          s.enviaMensajeUsuario(conex, answer)
           return nil
           
      case mensajeInvita:
-          remitente, b := s.conexiones[conexion]
+          remitente, b := s.conexiones[conex]
           if !b {
-               conexion.Desconectar()
+               conex.desconectar()
                return nil 
           }
 
@@ -238,9 +239,9 @@ func (s *servidor) procesaMensaje(conexion *Conexion, mensaje Mensaje) error{
           sala, existe := s.salas[msj.Roomname]
 
           if(! existe){
-               respuesta := NewMensajeAClienteBuilder(respuesta).
+               respuesta := newMensajeAClienteBuilder(respuesta).
                añadirRespuesta("INVITE", "NO_SUCH_ROOM", msj.Roomname)
-               s.enviaMensajeUsuario(conexion, respuesta)
+               s.enviaMensajeUsuario(conex, respuesta)
                return nil
           }
           
@@ -251,14 +252,14 @@ func (s *servidor) procesaMensaje(conexion *Conexion, mensaje Mensaje) error{
           for _, nombre := range msj.Users{
                _, answer := s.clientes[nombre]
                if (!answer){
-                    respuesta := NewMensajeAClienteBuilder(respuesta).
+                    respuesta := newMensajeAClienteBuilder(respuesta).
                     añadirRespuesta("INVITE", "NO_SUCH_USER", user.getNombre())
-                    s.enviaMensajeUsuario(conexion, respuesta)
+                    s.enviaMensajeUsuario(conex, respuesta)
                     return nil
                }
           }
 
-          invitacion := NewMensajeAClienteBuilder(invitacion).
+          invitacion := newMensajeAClienteBuilder(invitacion).
           añadir("username", remitente.getNombre()).
           añadir("roomname", msj.Roomname)
 
@@ -274,35 +275,35 @@ func (s *servidor) procesaMensaje(conexion *Conexion, mensaje Mensaje) error{
 
           
      case mensajeUnirSala:
-          remitente, b := s.conexiones[conexion]
+          remitente, b := s.conexiones[conex]
           if !b{
-               conexion.desconectar()
+               conex.desconectar()
                return nil 
           }
           
           sala, existe := s.salas[msj.Roomname]
 
           if (!existe){
-               respuesta := NewMensajeAClienteBuilder(respuesta).
+               respuesta := newMensajeAClienteBuilder(respuesta).
                añadirRespuesta("JOIN_ROOM", "NO_SUCH_ROOM", msj.Roomname)
-               s.enviaMensajeUsuario(conexion, respuesta)
+               s.enviaMensajeUsuario(conex, respuesta)
                return nil
           }
 
           if (!sala.estaInvitado(remitente.getNombre())){
-               respuesta := NewMensajeAClienteBuilder(respuesta).
+               respuesta := newMensajeAClienteBuilder(respuesta).
                añadirRespuesta("JOIN_ROOM", "NOT_INVITED", msj.Roomname)
-               s.enviaMensajeUsuario(conexion, respuesta)
+               s.enviaMensajeUsuario(conex, respuesta)
                return nil
           }
 
-          respuesta := NewMensajeAClienteBuilder(respuesta).
+          respuesta := newMensajeAClienteBuilder(respuesta).
           añadirRespuesta("JOIN_ROOM", "SUCCESS", msj.Roomname)
-          s.enviaMensajeUsuario(conexion, respuesta)
+          s.enviaMensajeUsuario(conex, respuesta)
 
           sala.agregarCliente(remitente)
 
-          msjPublico := NewMensajeAClienteBuilder(unidoASala).
+          msjPublico := newMensajeAClienteBuilder(unidoASala).
           añadir("roomname", msj.Roomname).
           añadir("username", remitente.getNombre())
 
@@ -310,24 +311,24 @@ func (s *servidor) procesaMensaje(conexion *Conexion, mensaje Mensaje) error{
           return nil
 
      case mensajeUsuariosSala:
-          remitente, b := s.conexiones[conexion]
+          remitente, b := s.conexiones[conex]
           if !b{
-               conexion.desconectar()
+               conex.desconectar()
                return nil 
           }
           sala, existe := s.salas[msj.Roomname]
 
           if (!existe){
-               respuesta := NewMensajeAClienteBuilder(respuesta).
+               respuesta := newMensajeAClienteBuilder(respuesta).
                añadirRespuesta("ROOM_USRS", "NO_SUCH_ROOM", msj.Roomname)
-               s.enviaMensajeUsuario(conexion, respuesta)
+               s.enviaMensajeUsuario(conex, respuesta)
                return nil
           }
 
           if(!sala.enSala(remitente.getNombre())){
-               respuesta := NewMensajeAClienteBuilder(respuesta).
+               respuesta := newMensajeAClienteBuilder(respuesta).
                añadirRespuesta("ROOM_USERS", "NOT_JOINED", msj.Roomname)
-               s.enviaMensajeUsuario(conexion, respuesta)
+               s.enviaMensajeUsuario(conex, respuesta)
                return nil
           }
 
@@ -335,34 +336,34 @@ func (s *servidor) procesaMensaje(conexion *Conexion, mensaje Mensaje) error{
           for _, u := range sala.getUsuarios() {
             lista[u.getNombre()] = string(u.getStatus())
         }
-          respuesta := NewMensajeAClienteBuilder(usuariosSala).
+          respuesta := newMensajeAClienteBuilder(usuariosSala).
           añadir("roomname", msj.Roomname).
           añadeListaUsuarios(lista)
-          s.enviaMensajeUsuario(conexion, respuesta)
+          s.enviaMensajeUsuario(conex, respuesta)
           return nil
 
      case mensajeTextoSala:
-          emisor, registrado := s.conexiones[conexion]
+          emisor, registrado := s.conexiones[conex]
           if !registrado {
-               conexion.desconectar()
+               conex.desconectar()
                return nil 
           }
 
           sala, existe := s.salas[msj.Roomname]
           if !existe {
-               resp := NewMensajeAClienteBuilder(respuesta).
+               resp := newMensajeAClienteBuilder(respuesta).
                     añadirRespuesta("ROOM_TEXT", "NO_SUCH_ROOM", msj.Roomname)
-                    s.enviaMensajeUsuario(conexion, resp)
+                    s.enviaMensajeUsuario(conex, resp)
                     return nil
           }
 
           if (! sala.enSala(emisor.getNombre())){     
-               resp := NewMensajeAClienteBuilder(respuesta).
+               resp := newMensajeAClienteBuilder(respuesta).
                     añadirRespuesta("ROOM_TEXT", "NOT_JOINED", msj.Roomname)
-                    s.enviaMensajeUsuario(conexion, resp)
+                    s.enviaMensajeUsuario(conex, resp)
                     return nil
           }
-          notif := NewMensajeAClienteBuilder(textoDesdeSala).
+          notif := newMensajeAClienteBuilder(textoDesdeSala).
                añadir("roomname", msj.Roomname).
                añadir("username", emisor.nombre).
                añadir("text", msj.Text)
@@ -370,30 +371,30 @@ func (s *servidor) procesaMensaje(conexion *Conexion, mensaje Mensaje) error{
           sala.mensajePublico(notif, emisor)
 
      case mensajeDejaSala:
-          emisor, registrado := s.conexiones[conexion]
+          emisor, registrado := s.conexiones[conex]
           if !registrado {
-               conexion.desconectar()
+               conex.desconectar()
                return nil 
           }
 
           sala, existe := s.salas[msj.Roomname]
           if !existe {
-            resp := NewMensajeAClienteBuilder(respuesta).
+            resp := newMensajeAClienteBuilder(respuesta).
                añadirRespuesta("LEAVE_ROOM", "NO_SUCH_ROOM", msj.Roomname)
-               s.enviaMensajeUsuario(conexion, resp)
+               s.enviaMensajeUsuario(conex, resp)
                return nil
           }
 
           if(! sala.enSala(emisor.getNombre())){
-               resp := NewMensajeAClienteBuilder(respuesta).
+               resp := newMensajeAClienteBuilder(respuesta).
                añadirRespuesta("LEAVE_ROOM", "NOT_JOINED", msj.Roomname)
-               s.enviaMensajeUsuario(conexion, resp)
+               s.enviaMensajeUsuario(conex, resp)
                return nil
           }
 
           sala.eliminarUsuario(emisor.getNombre())
    
-          notif := NewMensajeAClienteBuilder(dejaSala).
+          notif := newMensajeAClienteBuilder(dejaSala).
           añadir("roomname", msj.Roomname).
           añadir("username", emisor.nombre)
 
@@ -401,20 +402,20 @@ func (s *servidor) procesaMensaje(conexion *Conexion, mensaje Mensaje) error{
  
 
      case mensajeDesconectado:
-          emisor, registrado := s.conexiones[conexion]
+          emisor, registrado := s.conexiones[conex]
           if !registrado {
-          conexion.Desconectar()
+          conex.desconectar()
           return nil
           }
 
-          s.desconexionUsuario(emisor, conexion)
+          s.desconexionUsuario(emisor, conex)
      
      
 }
 
 
 
-func (s *servidor) enviaMensajePublico(builder *mensajeAClienteBuilder, cliente *Conexion) {
+func (s *servidor) enviaMensajePublico(builder *mensajeAClienteBuilder, cliente *conexion) {
      for conn := range s.conexiones{
           if (conn != cliente){
                enviaMensajeUsuario(conn, builder)
@@ -423,8 +424,8 @@ func (s *servidor) enviaMensajePublico(builder *mensajeAClienteBuilder, cliente 
 }
 
 
-func enviaMensajeUsuario(conexion Conexion, builder *mensajeAClienteBuilder) {
-   conexion.enviarMensaje(builder)
+func enviaMensajeUsuario(conex *conexion, builder *mensajeAClienteBuilder) {
+   conex.enviarMensaje(builder)
 }
 
 
@@ -435,14 +436,14 @@ func (s *servidor) verificaUsuario(nombreUsuario string) bool{
 }
 
 
-func (s *servidor) desconexionUsuario(usuario *Usuario, con *Conexion) {
+func (s *servidor) desconexionUsuario(usuario *usuario, con *conexion) {
 
      for _, sala := range s.salas {
           users := sala.getUsuarios()
           _, unido := users[usuario.getNombre()]
           if unido{
                sala.eliminarUsuario(usuario.getNombre())        
-               notif := NewMensajeAClienteBuilder(dejaSala).
+               notif := newMensajeAClienteBuilder(dejaSala).
                añadir("roomname", sala.getNombre()).
                añadir("username", usuario.getNombre())
 
@@ -452,14 +453,14 @@ func (s *servidor) desconexionUsuario(usuario *Usuario, con *Conexion) {
      }
     
 
-     notifDesconectado := NewMensajeAClienteBuilder(desconectado).
+     notifDesconectado := newMensajeAClienteBuilder(desconectado).
      añadir("username", usuario.nombre)
 
      s.enviaMensajePublico(notifDesconectado, usuario)
 
      delete(s.clientes, usuario.getNombre())
      delete(s.conexiones, con)
-     con.Desconectar()
+     con.desconectar()
 }
 
 

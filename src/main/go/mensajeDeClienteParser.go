@@ -8,8 +8,8 @@ import {
 
 
 // gobyexample.com/interfaces
-type Mensaje interface {
-	TipoMensaje() string
+type mensaje interface {
+	tipoMensaje() string
 }
 
 // https://gobyexample.com/json
@@ -22,7 +22,7 @@ type mensajeIdentificar struct{
 	Username string `json:"username"`
 }
 
-func (m mensajeIdentificar) TipoMensaje() string{
+func (m mensajeIdentificar) tipoMensaje() string{
 	return m.Type
 }
 
@@ -31,7 +31,7 @@ type mensajeNewStatus struct{
 	Status string `json:"status"`
 }
 
-func (m mensajeNewStatus) TipoMensaje() string{
+func (m mensajeNewStatus) tipoMensaje() string{
 	return m.Type
 }
 
@@ -39,7 +39,7 @@ type mensajeListaUsuarios struct{
 	Type string `json:"type"`
 }
 
-func (m mensajeListaUsuarios) TipoMensaje() string{
+func (m mensajeListaUsuarios) tipoMensaje() string{
 	return m.Type
 }
 
@@ -49,7 +49,7 @@ type mensajeTexto struct{
 	Text string `json:"text"`
 }
 
-func (m mensajeTexto) TipoMensaje() string{
+func (m mensajeTexto) tipoMensaje() string{
 	return m.Type
 }
 
@@ -59,7 +59,7 @@ type mensajeTextoPublico struct{
 	Text string `json:"text"`
 }
 
-func (m mensajeTextoPublico) TipoMensaje() string{
+func (m mensajeTextoPublico) tipoMensaje() string{
 	return m.Type
 }
 
@@ -68,7 +68,7 @@ type mensajeNuevaSala struct{
 	Roomname string `json:"roomname"`
 }
 
-func (m mensajeNuevaSala) TipoMensaje() string{
+func (m mensajeNuevaSala) tipoMensaje() string{
 	return m.Type
 }
 
@@ -78,7 +78,7 @@ type mensajeInvita struct{
 	Users map[string]string `json:"usernames"`
 }
 
-func (m mensajeInvita) TipoMensaje() string{
+func (m mensajeInvita) tipoMensaje() string{
 	return m.Type
 }
 
@@ -87,7 +87,7 @@ type mensajeUnirSala struct{
 	Roomname string `json:"roomname"`
 }
 
-func (m mensajeUnirSala) TipoMensaje() string{
+func (m mensajeUnirSala) tipoMensaje() string{
 	return m.Type
 }
 
@@ -96,7 +96,7 @@ type mensajeUsuariosSala struct{
 	Roomname string `json:"roomname"`
 }
 
-func (m mensajeUsuariosSala) TipoMensaje() string{
+func (m mensajeUsuariosSala) tipoMensaje() string{
 	return m.Type
 }
 
@@ -106,7 +106,7 @@ type mensajeTextoSala struct{
 	Text string `json:"text"`
 }
 
-func (m mensajeTextoSala) TipoMensaje() string{
+func (m mensajeTextoSala) tipoMensaje() string{
 	return m.Type
 }
 
@@ -116,7 +116,7 @@ type mensajeDejaSala struct{
 	Roomname string `json:"roomname"`
 }
 
-func (m mensajeDejaSala) TipoMensaje() string{
+func (m mensajeDejaSala) tipoMensaje() string{
 	return m.Type
 }
 
@@ -124,7 +124,7 @@ type mensajeDesconectado struct{
 	Type string `json:"type"`
 }
 
-func (m mensajeDesconectado) TipoMensaje() string{
+func (m mensajeDesconectado) tipoMensaje() string{
 	return m.Type
 }
 
@@ -132,7 +132,7 @@ func (m mensajeDesconectado) TipoMensaje() string{
 // https://go.dev/doc/effective_go#composite_literals
 //https://go.dev/doc/effective_go#allocation_new
 // https://stackoverflow.com/questions/18125625/constructors-in-go   idea para añadir valor inicial a map
-func ProcesaJSON(json []byte) (Mensaje, error){
+func procesaJSON(json []byte) (mensaje, error){
 	var mensaje mensajeBasico
 	if err := json.Unmarshal(json, &mensaje); err != nil{
 		return nil, fmt.Errorf("Error en el formato del mensaje:", err)

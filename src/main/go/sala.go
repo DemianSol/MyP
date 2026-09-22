@@ -1,15 +1,15 @@
 
 
-type Sala struct{
+type sala struct{
 	nombreSala string
-	usuariosSala map[string]*Usuario
+	usuariosSala map[string]*usuario
 	invitados map[string]bool
 }
 
-func NewSala(nombreSala string, creador *Usuario) *Sala{
-	s := &Sala{ 
+func newSala(nombreSala string, creador *usuario) *sala{
+	s := &sala{ 
 		nombreSala: nombreSala,
-		usuariosSala: make(map[string]*Usuario)
+		usuariosSala: make(map[string]*usuario)
 		invitados: make(map[string]bool),
 	}
 
@@ -19,49 +19,49 @@ func NewSala(nombreSala string, creador *Usuario) *Sala{
 	return s
 }
 
-func (s *Sala) getNombre() string{
+func (s *sala) getNombre() string{
 	return s.nombreSala
 }
 
 
-func (s *Sala) getUsuarios() (map[string]*Usuario){
+func (s *sala) getUsuarios() (map[string]*usuario){
 	return s.usuariosSala
 }
 
-func (s *Sala) enSala(user string) bool {
+func (s *sala) enSala(user string) bool {
 	u, b := s.usuariosSala[user]
 	return b
 }
 
-func (s *Sala) estaInvitado(user string) bool{
+func (s *sala) estaInvitado(user string) bool{
 	return s.invitados[user]
 }
 
-func (s *Sala) invitar(clienteNuevo string){
+func (s *sala) invitar(clienteNuevo string){
 	s.invitados[clienteNuevo] = true
 }
 
 
-func (s *Sala) agregarCliente(user *Usuario){
+func (s *sala) agregarCliente(user *usuario){
 	s.usuariosSala[user.getNombre()] = user
 	delete(s.invitados, user.getNombre())
 }
 
-func (s *Sala) eliminarUsuario(user string){
+func (s *sala) eliminarUsuario(user string){
 	delete(s.usuariosSala, user)
 }
 
-func (s *Sala) eliminaInvitado(user string){
+func (s *sala) eliminaInvitado(user string){
 	delete(s.invitados, user)
 }
 
-func (s *Sala) mensajeGeneral(builder *mensajeAClienteBuilder){
+func (s *sala) mensajeGeneral(builder *mensajeAClienteBuilder){
 	for _, u := range s.usuariosSala{
 		u.getConexion().enviarMensaje(builder)
 	}
 }
 
-func (s *Sala) mensajePublico(builder *mensajeAClienteBuilder, user *Usuario){
+func (s *sala) mensajePublico(builder *mensajeAClienteBuilder, user *usuario){
 	for _, u := range s.usuariosSala{
 		if (u != user){
 			u.getConexion().enviarMensaje(builder)
