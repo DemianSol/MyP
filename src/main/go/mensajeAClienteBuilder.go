@@ -1,7 +1,9 @@
-import {
+package main
+
+import (
 	"encoding/json"
 	"fmt"
-}
+)
 
 
 const(

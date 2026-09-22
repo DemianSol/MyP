@@ -1,5 +1,8 @@
 // modificación estructura/diseño   --- > agregar al siguiente commit 
 // cambio en inicia servidor      ----- > agregar al sigueinte commit 
+
+package main
+
 import (
        "net"   
        "log"
