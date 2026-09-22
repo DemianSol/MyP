@@ -18,6 +18,7 @@ const(
 	respuesta = "RESPONSE"
 	invitacion = "INVITATION"
 	desconectar = "DISCONNECT"
+	texto = "TEXT" // esto lo agergue
 )
 
 // https://gobyexample.com/json
