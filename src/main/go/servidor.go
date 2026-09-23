@@ -6,6 +6,9 @@ package main
 import (
        "net"   
        "fmt"
+       "os"
+       "os/signal"
+       "syscall"
 )
 type status string
 
@@ -48,8 +51,20 @@ func (s *servidor) iniciaServidor() error{
           }
      defer s.enchufe.Close()
 
+     // https://gobyexample.com/signals
+     // https://leapcell.medium.com/use-chan-os-signal-to-manage-os-signals-in-go-5b0d4d2818fb
 
-     
+     señal := make(chan os.Signal, 1)
+	signal.Notify(señal, os.Interrupt, syscall.SIGTERM)
+
+     go func() {
+		<-señal
+		fmt.Println("\nCerrando servidor y liberando puerto\n")
+		s.enchufe.Close() // Cierra el listener TCP inmediatamente
+		os.Exit(0)
+	}()
+
+
      go s.manejaBuzon()
      
      fmt.Printf("Servidor escuchando\n") // creo que está mal   
@@ -57,7 +72,7 @@ func (s *servidor) iniciaServidor() error{
      for s.conexionActiva{
           conn, err := s.enchufe.Accept()
           if err != nil{
-               continue
+               break
           }
           s.contadorConexiones++
           conex := newConexion(conn, s.contadorConexiones)
