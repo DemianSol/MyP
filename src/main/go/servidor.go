@@ -128,7 +128,7 @@ func (s *servidor) procesaMensaje(conex *conexion, msg mensaje) error{
           _, user := s.conexiones[conex]
           if (user){
                conex.desconectar()
-               return nil // que debo hacer si un usuario ya identificado intenta volver a identificarse?
+               return nil 
           }
 
           if (s.verificaUsuario(msj.Username)){
@@ -233,6 +233,7 @@ func (s *servidor) procesaMensaje(conex *conexion, msg mensaje) error{
                remitente, b := s.conexiones[conex]
                if !b{
                     conex.desconectar()
+                    return nil
                }
                room := newSala(msj.Roomname, remitente)
                s.salas[msj.Roomname] = room
@@ -269,10 +270,10 @@ func (s *servidor) procesaMensaje(conex *conexion, msg mensaje) error{
            }
           
           for _, nombre := range msj.Users{
-               user, answer := s.clientes[nombre]
+               _, answer := s.clientes[nombre]
                if (!answer){
                     respuesta := newMensajeAClienteBuilder(respuesta).
-                    añadirRespuesta("INVITE", "NO_SUCH_USER", user.getNombre())
+                    añadirRespuesta("INVITE", "NO_SUCH_USER", nombre)
                     s.enviaMensajeUsuario(conex, respuesta)
                     return nil
                }
@@ -384,7 +385,7 @@ func (s *servidor) procesaMensaje(conex *conexion, msg mensaje) error{
           }
           notif := newMensajeAClienteBuilder(textoSala).
                añadir("roomname", msj.Roomname).
-               añadir("username", emisor.nombre).
+               añadir("username", emisor.getNombre()).
                añadir("text", msj.Text)
 
           sala.mensajePublico(notif, emisor)
@@ -415,7 +416,7 @@ func (s *servidor) procesaMensaje(conex *conexion, msg mensaje) error{
    
           notif := newMensajeAClienteBuilder(dejaSala).
           añadir("roomname", msj.Roomname).
-          añadir("username", emisor.nombre)
+          añadir("username", emisor.getNombre())
 
           sala.mensajePublico(notif, emisor)
  
