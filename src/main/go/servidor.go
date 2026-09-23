@@ -340,7 +340,7 @@ func (s *servidor) procesaMensaje(conex *conexion, msg mensaje) error{
 
           if (!existe){
                respuesta := newMensajeAClienteBuilder(respuesta).
-               añadirRespuesta("ROOM_USRS", "NO_SUCH_ROOM", msj.Roomname)
+               añadirRespuesta("ROOM_USERS", "NO_SUCH_ROOM", msj.Roomname)
                s.enviaMensajeUsuario(conex, respuesta)
                return nil
           }
