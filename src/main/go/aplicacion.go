@@ -20,12 +20,12 @@ func validaPuerto(puerto string) bool{
 // go build -o proyecto1
 // go run main.go
 func uso(){
-	fmt.Fprint(os.Stderr, "Uso: ./proyecto1" + "puerto")
+	fmt.Fprint(os.Stderr, "Uso: ./proyecto1 <puerto>\n")
 	os.Exit(1)
 }
 
 func errorPuerto(p string){
-	fmt.Fprint(os.Stderr, "El puerto %s es inválido", p)
+	fmt.Fprintf(os.Stderr, "El puerto %s es inválido\n", p)
 	os.Exit(1)
 }
 
