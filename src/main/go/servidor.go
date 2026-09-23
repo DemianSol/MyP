@@ -5,17 +5,14 @@ package main
 
 import (
        "net"   
-       "log"
        "fmt"
-       "bufio"
-       "os"
 )
 type status string
 
 const(
-     AWAY status : "AWAY"
-     ACTIVE status: "ACTIVE"
-     BUSY status: "BUSY"
+     AWAY status = "AWAY"
+     ACTIVE status = "ACTIVE"
+     BUSY status = "BUSY"
 )
 
 type servidor struct{
@@ -24,53 +21,56 @@ type servidor struct{
      contadorConexiones int
      conexiones map[*conexion]*usuario
      clientes map[string]*usuario // cambiar para manejar clase de Vala
-     salas map[string]*Sala
+     salas map[string]*sala
      conexionActiva bool
      buzonTareas chan tarea 
 }
 
-func newServidor(puerto int) *servidor{
+func newServidor(puerto string) *servidor{
      server := servidor{puerto: puerto}
      server.contadorConexiones = 0
      server.conexiones = make(map[*conexion]*usuario)
-     server.salas = make(map[string]Sala)
+     server.salas = make(map[string]*sala)
      server.clientes = make(map[string]*usuario)
-     server.lectura = bufio.NewScanner(os.Stdin)
-     server.buzonTareas = make(chan <-tarea, 1000) 
+     server.buzonTareas = make(chan tarea, 1000) 
      return &server
 }
 
 // ESTO FUE TOMADO DE GOBYEXAMPLE/TCP SERVER.COM  
 func (s *servidor) iniciaServidor() error{  
+     var err error
      s.conexionActiva = true
-     s.imprimeMensaje("El puerto %s está disponible", s.puerto) 
+     fmt.Printf("El puerto %s está disponible\n", s.puerto) 
 
      s.enchufe, err = net.Listen("tcp", s.puerto)   
      if err != nil{ 
                return fmt.Errorf("Error al escuchar el puerto %s: %w", s.puerto, err) 
           }
      defer s.enchufe.Close()
+
+
+     
      go s.manejaBuzon()
      
-     s.imprimeMensaje("Servidor escuchando") // creo que está mal   
+     fmt.Printf("Servidor escuchando\n") // creo que está mal   
 
      for s.conexionActiva{
-          conn, err := enchufe.Accept()
+          conn, err := s.enchufe.Accept()
           if err != nil{
                continue
           }
           s.contadorConexiones++
           conex := newConexion(conn, s.contadorConexiones)
      
-          s.imprimeMensaje("Conexion recibida de: %d", conex.getIdentificador()) // agregar información 
+          fmt.Printf("Conexion recibida de: %d", conex.getIdentificador()) // agregar información 
           
-          go (s.recibeMensajes(conex)) 
+          go s.recibeMensajes(conex) 
      }
      return nil
 }
 
 
-func imprimeMensaje(mensaje string){ //probablemente está mal
+func (s *servidor) imprimeMensaje(mensaje string){ //probablemente está mal
      fmt.Println(mensaje)
 }
 
@@ -81,11 +81,11 @@ func (s *servidor) recibeMensajes(con *conexion){
           if err != nil{
                break
           }
-          msj, err := procesaJSON(bytes)
+          message, err := procesaJSON(bytes)
           if err != nil{
                continue
           }
-          s.buzonTareas <- tarea{conn: con, mensaje: msj}
+          s.buzonTareas <- tarea{conn: con, msj: message}
      }
 }
 
@@ -97,15 +97,16 @@ func (s *servidor) manejaBuzon() error{ //errores en hilos
      }
      
      if err != nil{
-          return fmt.Errof("Error al procesar la petición: %w", err)
+          return fmt.Errorf("Error al procesar la petición: %w", err)
      }
+     return nil
 }
 // https://go.dev/doc/effective_go#type_switch
-func (s *servidor) procesaMensaje(conex *conexion, mensaje Mensaje) error{
-     if (! conex.getConexionActiva())
+func (s *servidor) procesaMensaje(conex *conexion, msg mensaje) error{
+     if (! conex.getConexionActiva()){
           return nil
-
-     switch msj := mensaje.(type) {
+     }
+     switch msj := msg.(type) {
 
      case mensajeIdentificar:
 
@@ -132,7 +133,7 @@ func (s *servidor) procesaMensaje(conex *conexion, mensaje Mensaje) error{
           añadirRespuesta("IDENTIFY", "SUCCESS", msj.Username)
           s.enviaMensajeUsuario(conex, res)
 
-          todos := newMensajeAClienteBuilder(nuevoUsuario).
+          todos := newMensajeAClienteBuilder(usuarioNuevo).
           añadir("username", msj.Username)
           s.enviaMensajePublico(todos, conex)
                
@@ -192,7 +193,7 @@ func (s *servidor) procesaMensaje(conex *conexion, mensaje Mensaje) error{
           añadir("username", emisor.getNombre()).
           añadir("text", msj.Text)
           s.enviaMensajeUsuario(destinatario.getConexion(), destino)
-          }
+          
 
 
 
@@ -211,12 +212,12 @@ func (s *servidor) procesaMensaje(conex *conexion, mensaje Mensaje) error{
 
      case mensajeNuevaSala:
           
-          sala, existe := s.salas[msj.Roomname]
+          _, existe := s.salas[msj.Roomname]
 
           if !existe {
                remitente, b := s.conexiones[conex]
                if !b{
-                    coenxion.desconectar()
+                    conex.desconectar()
                }
                room := newSala(msj.Roomname, remitente)
                s.salas[msj.Roomname] = room
@@ -248,12 +249,12 @@ func (s *servidor) procesaMensaje(conex *conexion, mensaje Mensaje) error{
                return nil
           }
           
-          if (! enSala(remitente.getNombre())){
+          if (! sala.enSala(remitente.getNombre())){
                return nil
            }
           
           for _, nombre := range msj.Users{
-               _, answer := s.clientes[nombre]
+               user, answer := s.clientes[nombre]
                if (!answer){
                     respuesta := newMensajeAClienteBuilder(respuesta).
                     añadirRespuesta("INVITE", "NO_SUCH_USER", user.getNombre())
@@ -270,7 +271,7 @@ func (s *servidor) procesaMensaje(conex *conexion, mensaje Mensaje) error{
                if (sala.enSala(user) || sala.estaInvitado(user)){
                     continue
                }
-               sala.invitacion(user)
+               sala.invitar(user)
                clientConn, _ := s.clientes[user]
                s.enviaMensajeUsuario(clientConn.getConexion(), invitacion)
           }
@@ -310,7 +311,7 @@ func (s *servidor) procesaMensaje(conex *conexion, mensaje Mensaje) error{
           añadir("roomname", msj.Roomname).
           añadir("username", remitente.getNombre())
 
-          sala.mensajePublico(msjPublico)
+          sala.mensajePublico(msjPublico, remitente)
           return nil
 
      case mensajeUsuariosSala:
@@ -366,7 +367,7 @@ func (s *servidor) procesaMensaje(conex *conexion, mensaje Mensaje) error{
                     s.enviaMensajeUsuario(conex, resp)
                     return nil
           }
-          notif := newMensajeAClienteBuilder(textoDesdeSala).
+          notif := newMensajeAClienteBuilder(textoSala).
                añadir("roomname", msj.Roomname).
                añadir("username", emisor.nombre).
                añadir("text", msj.Text)
@@ -407,13 +408,13 @@ func (s *servidor) procesaMensaje(conex *conexion, mensaje Mensaje) error{
      case mensajeDesconectado:
           emisor, registrado := s.conexiones[conex]
           if !registrado {
-          conex.desconectar()
-          return nil
+               conex.desconectar()
+               return nil
           }
 
           s.desconexionUsuario(emisor, conex)
-     
-     
+     }
+     return nil
 }
 
 
@@ -421,14 +422,14 @@ func (s *servidor) procesaMensaje(conex *conexion, mensaje Mensaje) error{
 func (s *servidor) enviaMensajePublico(builder *mensajeAClienteBuilder, cliente *conexion) {
      for conn := range s.conexiones{
           if (conn != cliente){
-               enviaMensajeUsuario(conn, builder)
+               s.enviaMensajeUsuario(conn, builder)
           }
      }
 }
 
 
-func enviaMensajeUsuario(conex *conexion, builder *mensajeAClienteBuilder) {
-   conex.enviarMensaje(builder)
+func (s *servidor) enviaMensajeUsuario(conex *conexion, builder *mensajeAClienteBuilder) {
+   conex.enviaMensaje(builder)
 }
 
 
@@ -459,7 +460,7 @@ func (s *servidor) desconexionUsuario(usuario *usuario, con *conexion) {
      notifDesconectado := newMensajeAClienteBuilder(desconectado).
      añadir("username", usuario.nombre)
 
-     s.enviaMensajePublico(notifDesconectado, usuario)
+     s.enviaMensajePublico(notifDesconectado, usuario.getConexion())
 
      delete(s.clientes, usuario.getNombre())
      delete(s.conexiones, con)

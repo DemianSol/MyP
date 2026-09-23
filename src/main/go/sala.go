@@ -10,7 +10,7 @@ type sala struct{
 func newSala(nombreSala string, creador *usuario) *sala{
 	s := &sala{ 
 		nombreSala: nombreSala,
-		usuariosSala: make(map[string]*usuario)
+		usuariosSala: make(map[string]*usuario),
 		invitados: make(map[string]bool),
 	}
 
@@ -30,7 +30,7 @@ func (s *sala) getUsuarios() (map[string]*usuario){
 }
 
 func (s *sala) enSala(user string) bool {
-	u, b := s.usuariosSala[user]
+	_, b := s.usuariosSala[user]
 	return b
 }
 
@@ -58,14 +58,14 @@ func (s *sala) eliminaInvitado(user string){
 
 func (s *sala) mensajeGeneral(builder *mensajeAClienteBuilder){
 	for _, u := range s.usuariosSala{
-		u.getConexion().enviarMensaje(builder)
+		u.getConexion().enviaMensaje(builder)
 	}
 }
 
 func (s *sala) mensajePublico(builder *mensajeAClienteBuilder, user *usuario){
 	for _, u := range s.usuariosSala{
 		if (u != user){
-			u.getConexion().enviarMensaje(builder)
+			u.getConexion().enviaMensaje(builder)
 		}
 	}
 }

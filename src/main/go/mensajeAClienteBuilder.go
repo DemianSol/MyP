@@ -7,7 +7,7 @@ import (
 
 
 const(
-	nuevoUsuario = "NEW_USER"
+	usuarioNuevo = "NEW_USER"
 	nuevoStatus = "NEW_STATUS"
 	listaUsuario = "USER_LIST"
 	textoDesde = "TEXTO_FROM"
@@ -31,24 +31,24 @@ type mensajeAClienteBuilder struct{
 // https://go.dev/doc/effective_go#composite_literals
 //https://go.dev/doc/effective_go#allocation_new
 // https://stackoverflow.com/questions/18125625/constructors-in-go   idea para añadir valor inicial a map
-func newMensajeAClienteBuilder(tipoMensaje string) *mensajeClienteABuilder{
-	m := new(mensajeClienteBuilder)
+func newMensajeAClienteBuilder(tipoMensaje string) *mensajeAClienteBuilder {
+	m := new(mensajeAClienteBuilder)
 	m.data = make(map[string]any)
 	m.data["type"] = tipoMensaje
 	return m
 }
 
-func (m *mensajeClienteBuilder) añadir(llave string, valor string) *mensajeClienteBuilder{
+func (m *mensajeAClienteBuilder) añadir(llave string, valor string) *mensajeAClienteBuilder{
 	m.data[llave] = valor
 	return m
 }
 
-func (m *mensajeClienteBuilder) añadeListaUsuarios(usuarios map[string]string) *mensajeClienteBuilder{
+func (m *mensajeAClienteBuilder) añadeListaUsuarios(usuarios map[string]string) *mensajeAClienteBuilder{
 	m.data["users"] = usuarios
 	return m
 }
 
-func (m *mensajeClienteBuilder) añadirRespuesta(operacion string, resultado string, extra string)*mensajeClienteBuilder{
+func (m *mensajeAClienteBuilder) añadirRespuesta(operacion string, resultado string, extra string)*mensajeAClienteBuilder{
 	m.data["type"] = respuesta
 	m.data["operation"] = operacion
 	m.data["result"] = resultado
@@ -59,7 +59,7 @@ func (m *mensajeClienteBuilder) añadirRespuesta(operacion string, resultado str
 
 }
 
-func (m *mensajeClienteBuilder) construye() (string, error){
+func (m *mensajeAClienteBuilder) construye() (string, error){
 	j, err := json.Marshal(m.data)
 	if err != nil{
 		return "", fmt.Errorf("Error al construir el JSON para el cliente:%w", err)		

@@ -6,6 +6,17 @@ import (
 	"strconv"
 )
 
+func validaPuerto(puerto string) bool{
+	p, err := strconv.Atoi(puerto)
+	if err != nil{
+		return false
+	}
+	if (p < 1025 || p > 65535){
+		return false
+	}
+	return true
+}
+
 // go build -o proyecto1
 // go run main.go
 func uso(){
@@ -29,7 +40,7 @@ func newAplicacion(args []string) *aplicacion{
 	if len(args) != 1{
 		uso()
 	} 
-	if (!validaPuerto(args[0])){
+	if (! validaPuerto(args[0])){
 		errorPuerto(args[0])
 	}
 
@@ -42,18 +53,8 @@ func newAplicacion(args []string) *aplicacion{
 
 func (app *aplicacion) ejecutar() {
 	direccion := ":" + app.puerto
-	server := NewServidor(direccion)
+	server := newServidor(direccion)
 	server.iniciaServidor()
 }
 
 
-func (app *aplicacion) validaPuerto(puerto string) bool{
-	p, err := strconv.Atoi(puerto)
-	if err != nil{
-		return false
-	}
-	if (p < 1025 || p > 65535){
-		return false
-	}
-	return true
-}

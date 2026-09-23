@@ -1,13 +1,6 @@
 package main
 
 
-type status string
-
-const (
-	ACTIVE status = "ACTIVE"
-	BUSY status = "BUSY"
-	AWAY status = "AWAY"
-)
 
 type usuario struct{
 	nombre string
@@ -36,6 +29,6 @@ func (u *usuario) getStatus() status{
 	return u.status
 }
 
-func (u *usuario) setStatus(stat status) error{
+func (u *usuario) setStatus(stat status){
 	u.status = stat
 }

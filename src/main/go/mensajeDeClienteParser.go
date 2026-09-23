@@ -1,9 +1,9 @@
 package main
 
-import {
+import (
 	"encoding/json"
 	"fmt"
-}
+)
 
 
 
@@ -132,93 +132,93 @@ func (m mensajeDesconectado) tipoMensaje() string{
 // https://go.dev/doc/effective_go#composite_literals
 //https://go.dev/doc/effective_go#allocation_new
 // https://stackoverflow.com/questions/18125625/constructors-in-go   idea para añadir valor inicial a map
-func procesaJSON(json []byte) (mensaje, error){
+func procesaJSON(datos []byte) (mensaje, error){
 	var mensaje mensajeBasico
-	if err := json.Unmarshal(json, &mensaje); err != nil{
+	if err := json.Unmarshal(datos, &mensaje); err != nil{
 		return nil, fmt.Errorf("Error en el formato del mensaje:", err)
 	}
 
 	switch mensaje.Type {
 	case "IDENTIFY":
 		var msj mensajeIdentificar
-		if err := json.Unmarshal(json, &msj); err != nil{
+		if err := json.Unmarshal(datos, &msj); err != nil{
 			return nil, err
 		}
 		return msj, nil
 	
 	case "STATUS":
 		var msj mensajeNewStatus
-		if err := json.Unmarshal(json, &msj); err != nil{
+		if err := json.Unmarshal(datos, &msj); err != nil{
 			return nil, err
 		}
 		return msj, nil
 
 	case "USERS":
 		var msj mensajeListaUsuarios
-		if err := json.Unmarshal(json, &msj); err != nil{
+		if err := json.Unmarshal(datos, &msj); err != nil{
 			return nil, err
 		}
 		return msj, nil
 
 	case "TEXT":
 		var msj mensajeTexto
-		if err := json.Unmarshal(json, &msj); err != nil{
+		if err := json.Unmarshal(datos, &msj); err != nil{
 			return nil, err
 		}
 		return msj, nil
 
 	case "PUBLIC_TEXT":
 		var msj mensajeTextoPublico
-		if err := json.Unmarshal(json, &msj); err != nil{
+		if err := json.Unmarshal(datos, &msj); err != nil{
 			return nil, err
 		}
 		return msj, nil
 
 	case "NEW_ROOM":
 		var msj mensajeNuevaSala
-		if err := json.Unmarshal(json, &msj); err != nil{
+		if err := json.Unmarshal(datos, &msj); err != nil{
 			return nil, err
 		}
 		return msj, nil
 
 	case "INVITE":
 		var msj mensajeInvita
-		if err := json.Unmarshal(json, &msj); err != nil{
+		if err := json.Unmarshal(datos, &msj); err != nil{
 			return nil, err
 		}
 		return msj, nil
 
 	case "JOIN_ROOM":
 		var msj mensajeUnirSala
-		if err := json.Unmarshal(json, &msj); err != nil{
+		if err := json.Unmarshal(datos, &msj); err != nil{
 			return nil, err
 		}
 		return msj, nil
 
 	case "ROOM_USERS":
 		var msj mensajeUsuariosSala
-		if err := json.Unmarshal(json, &msj); err != nil{
+		if err := json.Unmarshal(datos, &msj); err != nil{
 			return nil, err
 		}
 		return msj, nil
 
 	case "ROOM_TEXT":
 		var msj mensajeTextoSala
-		if err := json.Unmarshal(json, &msj); err != nil{
+		if err := json.Unmarshal(datos, &msj); err != nil{
 			return nil, err
 		}
 		return msj, nil
 	
 	case "LEAVE_ROOM":
 		var msj mensajeDejaSala
-		if err := json.Unmarshal(json, &msj); err != nil{
+		if err := json.Unmarshal(datos, &msj); err != nil{
 			return nil, err
 		}
 		return msj, nil
 	
 	case "DISCONNECT":
 		var msj mensajeDesconectado
-		if err := json.Unmarshal(json, &msj); err != nil{
+		if err := json.Unmarshal(datos, &msj); err != nil{
 			return nil, err
 		}
 		return msj, nil
