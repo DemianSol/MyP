@@ -6,6 +6,12 @@ import (
 	"strconv"
 )
 
+
+func imprimeMensaje(mensaje string){ //probablemente está mal
+     fmt.Println(mensaje)
+}
+
+
 func validaPuerto(puerto string) bool{
 	p, err := strconv.Atoi(puerto)
 	if err != nil{
@@ -40,7 +46,7 @@ func newAplicacion(args []string) *aplicacion{
 	if len(args) != 1{
 		uso()
 	} 
-	if (! validaPuerto(args[0])){
+	if (!validaPuerto(args[0])){
 		errorPuerto(args[0])
 	}
 

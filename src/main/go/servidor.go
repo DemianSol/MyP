@@ -9,6 +9,7 @@ import (
        "os"
        "os/signal"
        "syscall"
+       "sync"
 )
 type status string
 
@@ -18,6 +19,8 @@ const(
      BUSY status = "BUSY"
 )
 
+// https://go.dev/tour/concurrency/9
+
 type servidor struct{
      puerto string
      enchufe net.Listener
@@ -26,7 +29,7 @@ type servidor struct{
      clientes map[string]*usuario // cambiar para manejar clase de Vala
      salas map[string]*sala
      conexionActiva bool
-     buzonTareas chan tarea 
+     mu sync.RWMutex
 }
 
 func newServidor(puerto string) *servidor{
@@ -35,7 +38,6 @@ func newServidor(puerto string) *servidor{
      server.conexiones = make(map[*conexion]*usuario)
      server.salas = make(map[string]*sala)
      server.clientes = make(map[string]*usuario)
-     server.buzonTareas = make(chan tarea, 1000) 
      return &server
 }
 
@@ -64,8 +66,6 @@ func (s *servidor) iniciaServidor() error{
 		os.Exit(0)
 	}()
 
-
-     go s.manejaBuzon()
      
      fmt.Printf("Servidor escuchando\n") // creo que está mal   
 
@@ -74,50 +74,47 @@ func (s *servidor) iniciaServidor() error{
           if err != nil{
                break
           }
+
+          s.mu.Lock()
           s.contadorConexiones++
-          conex := newConexion(conn, s.contadorConexiones)
-     
-          fmt.Printf("Conexion recibida de: %d", conex.getIdentificador()) // agregar información 
+          id := s.contadorConexiones
+          s.mu.Unlock()
+          conex := newConexion(conn, id)
+          fmt.Printf("Conexion recibida de: %d" + "\n", conex.getIdentificador()) // agregar información 
           
           go s.recibeMensajes(conex) 
      }
      return nil
 }
 
-
+/*
 func (s *servidor) imprimeMensaje(mensaje string){ //probablemente está mal
      fmt.Println(mensaje)
 }
+     */
 
 func (s *servidor) recibeMensajes(con *conexion){
      // que hago cuando se termine? debo mandar mensaje de desconexion? 
      for {
           bytes, err := con.recibeMensaje()
           if err != nil{
+               s.procesaMensaje(con, mensajeDesconectado{})
                break
           }
           message, err := procesaJSON(bytes)
           if err != nil{
                continue
           }
-          s.buzonTareas <- tarea{conn: con, msj: message}
+          s.procesaMensaje(con, message)
      }
 }
 
-// https://blog.joedayz.pe/channels-en-go-buffered-vs-unbuffered-comunicacion-segura-entre-goroutines
-func (s *servidor) manejaBuzon() error{ //errores en hilos
-     var err error
-     for tarea := range s.buzonTareas{
-          s.procesaMensaje(tarea.getConexion(), tarea.getMensaje())
-     }
-     
-     if err != nil{
-          return fmt.Errorf("Error al procesar la petición: %w", err)
-     }
-     return nil
-}
+
 // https://go.dev/doc/effective_go#type_switch
 func (s *servidor) procesaMensaje(conex *conexion, msg mensaje) error{
+     s.mu.Lock()
+     defer s.mu.Unlock()
+
      if (! conex.getConexionActiva()){
           return nil
      }
