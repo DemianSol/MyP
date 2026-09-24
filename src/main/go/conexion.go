@@ -4,7 +4,7 @@ import (
 	"net"
 	"bufio"
 	"fmt"
-
+	"sync"
 )
 
 type conexion struct{
@@ -16,6 +16,7 @@ type conexion struct{
 	imprimir *bufio.Writer
 	aceptado bool
 	contadorConexiones int
+	mu sync.Mutex
 }
 func newConexion(enchufe net.Conn, identificador int) *conexion{ 
 
@@ -68,6 +69,8 @@ func (c *conexion) recibeMensaje() ([]byte, error){
 
 
 func (c* conexion) enviaMensaje(builder *mensajeAClienteBuilder) error{
+	c.mu.Lock()
+    defer c.mu.Unlock()
 
 	json, err := builder.construye()
 	if err != nil{
