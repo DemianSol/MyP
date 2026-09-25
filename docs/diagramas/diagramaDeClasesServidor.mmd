@@ -1,0 +1,100 @@
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#ffffff',
+    'primaryTextColor': '#000000',
+    'primaryBorderColor': '#000000',
+    'lineColor': '#000000',
+    'secondaryColor': '#ffffff',
+    'tertiaryColor': '#ffffff'
+  }
+}}%%
+classDiagram
+    direction TB
+
+    class aplicacion {
+        -args: []string
+        -puerto: string
+        +ejecutar()
+    }
+
+    class servidor {
+        -direccion: string
+        -mu: Mutex
+        -clientes: map[string]*usuario
+        -conexiones: map[*conexion]*usuario
+        -salas: map[string]*sala
+        +iniciaServidor()
+        +procesaMensaje(conex, msg)
+        +enviaMensajePublico(builder, cliente)
+        +enviaMensajeUsuario(conex, builder)
+        +desconexionUsuario(usuario, con)
+    }
+
+    class usuario {
+        -nombre: string
+        -status: status
+        -conexion: *conexion
+        +getConexion() *conexion
+        +getNombre() string
+        +getStatus() status
+        +setStatus(stat)
+    }
+
+    class sala {
+        -nombreSala: string
+        -usuariosSala: map[string]*usuario
+        -invitados: map[string]bool
+        +getNombre() string
+        +agregarCliente(user)
+        +eliminarUsuario(user)
+        +mensajeGeneral(builder)
+        +mensajePublico(builder, user)
+    }
+
+    class conexion {
+        -identificador: int
+        -conexionActiva: bool
+        -aceptado: bool
+        -mu: Mutex
+        +desconectar()
+        +recibeMensaje() []byte
+        +enviaMensaje(builder)
+    }
+
+    class mensajeAClienteBuilder {
+        -data: map[string]any
+        +añadir(llave, valor)
+        +añadeListaUsuarios(usuarios)
+        +añadirRespuesta(operacion, resultado, extra)
+        +construye() string
+    }
+
+    class mensaje {
+        <<interface>>
+        +tipoMensaje() string
+    }
+
+    class mensajeIdentificar {
+        +Type: string
+        +Username: string
+        +tipoMensaje() string
+    }
+
+    class mensajeTexto {
+        +Type: string
+        +Username: string
+        +Text: string
+        +tipoMensaje() string
+    }
+
+    aplicacion ..> servidor : instancia
+    servidor *-- usuario : gestiona
+    servidor *-- sala : gestiona
+    servidor --> conexion : asocia
+    sala o-- usuario : participantes
+    usuario --> conexion : posee
+    conexion ..> mensajeAClienteBuilder : utiliza
+    servidor ..> mensaje : procesa
+    mensajeIdentificar ..|> mensaje
+    mensajeTexto ..|> mensaje
