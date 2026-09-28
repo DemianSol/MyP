@@ -8,10 +8,10 @@ public class Cliente{
     private bool conexionActiva;
 
     public Cliente(string ip, string puerto){
-    
-        this.ip = new InetAddress.from_string(ip);
+ 
         this.puerto = (uint16)int.parse(puerto);
-        this.conexionActiva = true;
+        this.ip = new InetAddress.from_string(ip);
+        this.conexionActiva = false;
     }
 
 
@@ -24,6 +24,7 @@ public class Cliente{
         Consola.mostrarMensaje("Conectado al servidor \n");
 
         this.conexion = new Conexion(conn);
+        this.conexionActiva = true;
 
         new Thread<void*>("Hilo servidor", this.recibeMensajesServidor);
         Consola consola = new Consola(this);
@@ -54,75 +55,78 @@ public class Cliente{
         return null;
     
     }
-
+    // 
     // https://wiki.gnome.org/Projects/Vala/Tutorial#Dynamic_Type_Casting
     // https://stackoverflow.com/questions/73976240/why-as-keyword-is-not-casting-in-this-code
     private void procesaMensajeServidor(string json_recibido)throws Error {
             try {
-                Mensaje? msg = mensajeDeServidorParser.procesarJSON(json_recibido);
-                if (msg == null) return;
+                Mensaje? msg = MensajeDeServidorParser.procesarJSON(json_recibido);
+                if (msg == null){
+                    return;
+                }
 
                 if (msg is MensajeNuevoUsuario) {
                     var m = (MensajeNuevoUsuario) msg;
-                    Consola.mostrarMensaje("\nNuevo usuario conectado: %s\n", m.usuario);
+                    // https://docs.vala.dev/genie/introduction/02-language-basics.html#including-a-variable-s-value-in-a-string
+                    Consola.mostrarMensaje(@"\nNuevo usuario conectado: $(m.usuario)\n");
                 }
 
                 else if (msg is MensajeNuevoStatus){
                     var u = (MensajeNuevoStatus) msg;
-                    Consola.mostrarMensaje("\nUsuario %s cambio a status: %s", u.usuario, u.stat);
+                    Consola.mostrarMensaje(@"\nUsuario $(u.usuario) cambio a status: $(u.stat)\n");
                 }
 
                 else if (msg is MensajeListaUsuarios){
                     var m = (MensajeListaUsuarios) msg;
-                    Consola.mostrarMensaje(m.listado);
+                    Consola.mostrarLista(m.listado);
                 }
 
                 else if (msg is MensajeTextoDe){
                     var m = (MensajeTextoDe) msg;
-                    Consola.mostrarMensaje("%s te envía mensaje: %s", m.usuario, m.texto);
+                    Consola.mostrarMensaje(@"\n$(m.usuario) te envía mensaje: $(m.texto)\n");
                 }
 
                 else if (msg is MensajeTextoPubico){
                     var m = (MensajeTextoPubico) msg;
-                    Consola.mostrarMensaje("%s le envía mensaje a todos: %s", m.usuario, m.texto);
+                    Consola.mostrarMensaje(@"\n$(m.usuario) le envía mensaje a todos: $(m.texto)\n");
                 }
 
                 else if (msg is MensajeUnidoASala){
-                    var m = (MensajeUnidoASala) msg;
-                    Consola.mostrarMensaje("%s se unió a la sala: %s", m.nombre, m.sala);
+                    var m = (MensajeUnidoASala)msg;
+                    Consola.mostrarMensaje(@"\n$(m.nombre) se unió a la sala: $(m.sala)\n");
                 }
 
                 else if (msg is MensajeUsuariosSala){
-                    var m = (MensajeUsuariosSala) msg;
-                    Consola.mostrarMensaje("Usuarios en %s", m.sala);
-                    Consola.mostrarMensaje(m.usuarios);
+                    var m = (MensajeUsuariosSala)msg;
+                    Consola.mostrarMensaje(@"\nUsuarios en $(m.sala)\n");
+                    Consola.mostrarLista(m.usuarios);
                 }
 
                 else if (msg is MensajeTextoSala){
-                    var m = (MensajeTextoSala) msg;
-                    Consola.mostrarMensaje("(En %s) %s envía mensaje: %s", m.sala, m.nombre, m.texto);
+                    var m = (MensajeTextoSala)msg;
+                    Consola.mostrarMensaje(@"\n(En $(m.sala)) $(m.nombre) envía mensaje: $(m.texto)\n");
                 }
 
                 else if (msg is MensajeDejaSala){
-                    var m = (MensajeDejaSala) msg;
-                    Consola.mostrarMensaje("(En %s) %s abandonó la sala", m.sala, m.nombre);
+                    var m = (MensajeDejaSala)msg;
+                    Consola.mostrarMensaje(@"\n(En $(m.sala)) $(m.nombre) abandonó la sala\n");
                 }
 
                 else if (msg is MensajeRespuesta){
-                    var m = (MensajeDejaSala) msg;
-                    Consola.mostrarMensaje("(En %s) %s abandonó la sala", m.sala, m.nombre);
+                    var m = (MensajeRespuesta)msg;
+                    Consola.mostrarMensaje(@"\nRespuesta recibida por operación $(m.operacion) con resultado $(m.resultado). $(m.extra)\n");
                 }
 
                 else if (msg is MensajeDesconectado){
                     var m = (MensajeDesconectado) msg;
-                    Consola.mostrarMensaje("El usuario %s se desconectó", m.nombre);
+                    Consola.mostrarMensaje(@"El usuario $(m.nombre) se desconectó\n");
                 }
                 else {
                     warning ("El mensaje no es de un tipo aceptado");
                 }
 
             } catch (Error e){
-                Consola.mostrarMensaje("Error procesando el JSON: %s\n", e.message);
+                Consola.mostrarMensaje(@"Error procesando el JSON: $(e.message)\n");
             }
     }
 
