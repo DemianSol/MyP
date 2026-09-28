@@ -2,20 +2,37 @@
 
 version: '3'
 
-
 tasks:
-
-  
-
   default:
-    desc: "Sección para compilar"
+    desc: "Compila tanto el servidor Go como el cliente Vala"
     cmds:
-      - go build -o bin/app ./MyP/src/main/go...
-      - valac --pkg glib-2.0 --pkg gobject-2.0 src/main/vala/ -o bin/app-vala   ##revisar esta parte
+      - task: build-server
+      - task: build-client
 
-    test:
-    desc: "Sección para ejecutar pruebas unitarias"
-    cmds:   
-      - go test -v ./src/test/go/...
-      - valac --pkg glib-2.0 --pkg gobject-2.0 src/test/vala/... -o bin/test-runner-vala
+  build-servidor:
+    desc: "Compila el servidor Go"
+    cmds:
+      - mkdir -p bin
+      - go build -o bin/Servidor ./src/main/go
+
+  build-cliente:
+    desc: "Compila el cliente Vala con dependencias Gio y Json-Glib"
+    cmds:
+      - mkdir -p bin
+      - valac --pkg gio-2.0 --pkg json-glib-1.0 -X -w ./src/main/vala/*.vala -o bin/Cliente
+     
+  run-servidor:
+    desc: "Ejecuta el servidor"
+    cmds:
+      - ./bin/Servidor {{.CLI_ARGS | default "5050"}}
+
+  run-cliente:
+    desc: "Ejecuta el cliente"
+    cmds:
+      - ./bin/Cliente {{.CLI_ARGS}}   
+    
+  clean:
+    desc: "Elimina los programas compilados"
+    cmds:
+      - rm -rf bin/
     
