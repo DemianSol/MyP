@@ -22,7 +22,7 @@ public class Conexion{
     
     // https://wiki.gnome.org/Projects(2f)Vala(2f)GIONetworkingSample.html
     // https://docs.vala.dev/genie/sample-code/gio-networking-sample
-    private void enviaMensajeServidor(string msj) throws Error{
+    public void enviaMensajeServidor(string msj) throws Error{
         try{
             this.output.put_string(msj + "\n");
         } catch(Error e){
