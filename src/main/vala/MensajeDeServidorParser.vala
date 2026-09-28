@@ -1,21 +1,21 @@
 using Json;
+using GLib;
 
-
-public class mensajeDeServidorParser : Object {
+public class MensajeDeServidorParser : GLib.Object {
 
 	// https://docs.vala.dev/sample-code/other/json-sample.html
-	public static Mensaje? procesarJSON (string json) throw Error{
+	public static Mensaje? procesarJSON (string json) throws Error{
 		var parser = new Json.Parser();
 		parser.load_from_data(json, -1);
 
-		var base = 	parser.get_root().get_object();
-		if (base == null || base.get_node_type() != Json.NodeType.OBJECT){
+		var raiz = 	parser.get_root();
+		if (raiz == null || raiz.get_node_type() != Json.NodeType.OBJECT){
 			throw new IOError.INVALID_DATA("El formato JSON no es correcto");
 		}
 
-		var msj = base.get_object();
+		unowned Json.Object msj = raiz.get_object();
 		if (! msj.has_member("type")){
-			throw new IOError.INVALID_DATA("El mensaje no contiene el campo 'type'");
+			throw new IOError.INVALID_DATA("El mensaje no tiene el campo 'type'");
 		}
 
 		string tipo = msj.get_string_member("type");
@@ -32,10 +32,10 @@ public class mensajeDeServidorParser : Object {
 				return new MensajeNuevoStatus(user, stat);
 
 			case "USER_LIST":	
-				Json.Array listado = msj.get_array_members("users");
+				Json.Array listado = msj.get_array_member("users");
 				string[] usuarios = {};
-				foreach(u in listado.get_elements()){
-					usuarios += u.get_string()
+				foreach (unowned Json.Node u in listado.get_elements()){
+					usuarios += u.get_string();
 				}
 				return new MensajeListaUsuarios(usuarios);
 
@@ -56,17 +56,17 @@ public class mensajeDeServidorParser : Object {
 
 			case "ROOM_USER_LIST":
 				string sala = msj.get_string_member("roomname");
-				Json.Array listado = msj.get_array_members("users");
+				Json.Array listado = msj.get_array_member("users");
 				string[] usuarios = {};
-				foreach(u in listado.get_elements()){
-					usuarios += u.get_string()
+				foreach (unowned Json.Node u in listado.get_elements()){
+					usuarios += u.get_string();
 				}
-				return new MensajeUsuariosSala(sala, listado);
+				return new MensajeUsuariosSala(sala, usuarios);
 
 			case "ROOM_TEXT_FROM":
 				string sala = msj.get_string_member("roomname");
 				string nombre = msj.get_string_member("username");
-				string texto = msj.get_string_member("text")
+				string texto = msj.get_string_member("text");
 				return new MensajeTextoSala(sala, nombre, texto);
 
 			case "LEFT_ROOM":
@@ -76,10 +76,10 @@ public class mensajeDeServidorParser : Object {
 
 			case "RESPONSE":
 				string operacion = msj.get_string_member("operation");
-				string resultado = msj.get_string_member("result")
-				string extra? = null;
+				string resultado = msj.get_string_member("result");
+				string extra = null;
 				if (msj.has_member("extra")){
-					msj.get_string_member("extra")
+					msj.get_string_member("extra");
 				}
 				return new MensajeRespuesta(operacion, resultado, extra);
 
@@ -90,7 +90,6 @@ public class mensajeDeServidorParser : Object {
 			
 			default:
 				throw new IOError.INVALID_DATA ("Tipo de mensaje es desconocido: %s", tipo);
-				return null
 		}
 	}
 }
