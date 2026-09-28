@@ -22,12 +22,21 @@ public class Consola{
 
             if (entrada == null) {
                 this.activo = false;
-                this.cliente.desconectar ();
+                this.cliente.desconectar();
                 break;
             }
             
-            this.cliente.enviar(entrada);
-            
+            var msj = ConsolaParser.parsearConsola(entrada);
+            if (msj != null){
+                this.cliente.enviar(msj);
+            }
+
+            string texto = entrada.strip();
+            if (texto == "/desconectar"){
+                this.activo = false;
+                this.cliente.desconectar();
+                break;
+            }
         }
         return null;
     }

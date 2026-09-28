@@ -21,6 +21,7 @@ public class MensajeNuevoUsuario : Object, Mensaje {
 }
 
 
+
 public class MensajeNuevoStatus : Object, Mensaje {
     public string usuario{ get; set;}
     public string stat{get; set;}
@@ -51,7 +52,7 @@ public class MensajeTextoDe : Object, Mensaje{
 
 
 public class MensajeTextoPubico : Object, Mensaje{
-    public string usuario{get; set};
+    public string usuario{get; set;}
     public string texto{get; set;}
 
     public MensajeTextoPubico(string usuario, string texto){
@@ -61,7 +62,7 @@ public class MensajeTextoPubico : Object, Mensaje{
 }
 
 public class MensajeUnidoASala : Object, Mensaje{
-    public string sala{get; set;};
+    public string sala{get; set;}
     public string nombre {get;set;}
 
     public MensajeUnidoASala(string sala, string nombre){
@@ -72,7 +73,7 @@ public class MensajeUnidoASala : Object, Mensaje{
 
 
 public class MensajeUsuariosSala : Object, Mensaje{
-    public string sala{get; set;};
+    public string sala{get; set;}
     public string[] usuarios{get; set;}
 
     public MensajeUsuariosSala(string sala, string[] usuarios){
@@ -82,9 +83,9 @@ public class MensajeUsuariosSala : Object, Mensaje{
 }
 
 public class MensajeTextoSala : Object, Mensaje{
-    public string sala{get; set;};
-    public string nombre{get; set;};
-    public string texto{get; set;};
+    public string sala{get; set;}
+    public string nombre{get; set;}
+    public string texto{get; set;}
 
     public MensajeTextoSala(string sala, string nombre, string texto){
         this.sala = sala;
@@ -94,8 +95,8 @@ public class MensajeTextoSala : Object, Mensaje{
 }
 
 public class MensajeDejaSala : Object, Mensaje{
-    public string sala{get; set;};
-    public string nombre{get; set;}:
+    public string sala{get; set;}
+    public string nombre{get; set;}
 
     public MensajeDejaSala(string sala, string nombre){
         this.sala = sala;
@@ -104,9 +105,9 @@ public class MensajeDejaSala : Object, Mensaje{
 }
 
 public class MensajeRespuesta : Object, Mensaje{
-    public string operacion{get; set;}:
-    public string resultado{get; set;}:
-    public string extra{get; set;};
+    public string operacion{get; set;}
+    public string resultado{get; set;}
+    public string extra{get; set;}
 
    
     public MensajeRespuesta(string operacion, string resultado, string extra){
@@ -119,7 +120,7 @@ public class MensajeRespuesta : Object, Mensaje{
 
 
 public class MensajeDesconectado : Object, Mensaje{
-    public string nombre{get; set;};
+    public string nombre{get; set;}
 
     public MensajeDesconectado(string nombre){
         this.nombre = nombre;
