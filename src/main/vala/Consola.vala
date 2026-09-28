@@ -3,7 +3,7 @@ public class Consola{
 
     Cliente cliente;
     private bool activo;
-    private static Mutex mutex;
+    private static Mutex mutex = Mutex();
 
     public Consola(Cliente cliente){
         this.cliente = cliente;
@@ -16,6 +16,7 @@ public class Consola{
         while (this.activo) {
             mutex.lock ();
             print ("> ");
+            stdout.flush ();
             mutex.unlock ();
 
             string? entrada = stdin.read_line ();
@@ -51,7 +52,7 @@ public class Consola{
         }
     }
 
-    public static void mostrar_mensaje(string[] mensajes) {
+    public static void mostrarLista(string[] mensajes) {
         mutex.lock();
         try{
             string resultado = string.joinv (", ", mensajes);
