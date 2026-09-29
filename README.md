@@ -1,6 +1,6 @@
 Aplicación de Chat cliente-servidor. El servido se construye en **Go** y el cliente en **Vala**.
 
-El servidor es concurrente; la comunicación entre él y los usuarios se hace mediante Sockets. 
+El servidor es concurrente; la comunicación entre él y los usuarios se hace mediante Sockets utilizando el protocolo JSON.  
 
 El proyecto utiliza **[Taskfile](https://taskfile.dev/)**  para automatizar la construcción de los programas.
 
@@ -14,7 +14,7 @@ Asegúrate de contar con los siguientes paquetes y herramientas en tu sistema op
 
 ### Entorno Vala y Dependencias del Sistema
 * Compilador **`valac`**.
-* Bibliotecas y cabeceras de desarrollo de **GLib / Gio** y **Json-Glib**.
+* Bibliotecas  de **GLib / Gio** y **Json-Glib**.
 
 
 
@@ -51,10 +51,10 @@ Esto generará los ejecutables correspondientes dentro del directorio `bin/`:
 Para compilar uno solo de los programas:
 ```bash
 # Solo el servidor Go
-task build-server
+task build-servidor
 
 # Solo el cliente Vala
-task build-client
+task build-cliente
 ```
 ---
 
@@ -69,7 +69,7 @@ El servidor requiere que se especifique el **puerto de escucha** como argumento 
 # Usa el puerto 5050 por defecto:
 task run-servidor
 
-# O especifica un puerto diferente :
+# Ó puedes especificar un puerto diferente :
 task run-servidor -- 9000
 ```
 
