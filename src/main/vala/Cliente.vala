@@ -6,16 +6,17 @@ public class Cliente{
     private uint16 puerto;
     private Conexion conexion;
     private bool conexionActiva;
+    private MainLoop loop;
 
     public Cliente(string ip, string puerto){
  
         this.puerto = (uint16)int.parse(puerto);
         this.ip = new InetAddress.from_string(ip);
         this.conexionActiva = false;
+        this.loop = new MainLoop();
     }
 
 
- // https://docs.vala.dev/sample-code/basics/gio-networking-sample.html
     public void iniciaCliente() throws Error{
         
 
@@ -29,6 +30,7 @@ public class Cliente{
         new Thread<void*>("Hilo servidor", this.recibeMensajesServidor);
         Consola consola = new Consola(this);
         new Thread<void*>("Hilo terminal", consola.leerTerminal);
+        this.loop.run(); 
 
     }
 
@@ -56,8 +58,7 @@ public class Cliente{
     
     }
     // 
-    // https://wiki.gnome.org/Projects/Vala/Tutorial#Dynamic_Type_Casting
-    // https://stackoverflow.com/questions/73976240/why-as-keyword-is-not-casting-in-this-code
+
     private void procesaMensajeServidor(string json_recibido)throws Error {
             try {
                 Mensaje? msg = MensajeDeServidorParser.procesarJSON(json_recibido);
@@ -67,7 +68,6 @@ public class Cliente{
 
                 if (msg is MensajeNuevoUsuario) {
                     var m = (MensajeNuevoUsuario) msg;
-                    // https://docs.vala.dev/genie/introduction/02-language-basics.html#including-a-variable-s-value-in-a-string
                     Consola.mostrarMensaje(@"\nNuevo usuario conectado: $(m.usuario)\n");
                 }
 
@@ -121,6 +121,12 @@ public class Cliente{
                     var m = (MensajeDesconectado) msg;
                     Consola.mostrarMensaje(@"El usuario $(m.nombre) se desconectó\n");
                 }
+
+                else if (msg is MensajeInvitacion){
+                    var s = (MensajeInvitacion)msg;
+                    Consola.mostrarMensaje(@"\nEl usuario $(s.usuario) te invitó a la sala $(s.sala)\n");
+                }
+
                 else {
                     warning ("El mensaje no es de un tipo aceptado");
                 }
