@@ -1,0 +1,144 @@
+
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#ffffff',
+    'primaryTextColor': '#000000',
+    'primaryBorderColor': '#000000',
+    'lineColor': '#000000',
+    'secondaryColor': '#ffffff',
+    'tertiaryColor': '#ffffff'
+  }
+}}%%
+classDiagram
+    direction TB
+
+    class Chat {
+        +main(string[] args)$ void
+    }
+
+    class Aplicacion {
+        -string[] args
+        +Aplicacion(string[] args)
+        -errorPuerto(string puerto)$ void
+        -errorDireccion(string direccion)$ void
+        -uso()$ void
+        -verificaDireccion(string ip) bool
+        -verificaPuerto(string puerto) bool
+        +ejecuta() void
+    }
+
+    class Cliente {
+        -InetAddress ip
+        -uint16 puerto
+        -Conexion conexion
+        -bool conexionActiva
+        -MainLoop loop
+        +Cliente(string ip, string puerto)
+        +iniciaCliente() void
+        -recibeMensajesServidor() void*
+        -procesaMensajeServidor(string json_recibido) void
+        +enviar(string texto) void
+        +desconectar() void
+    }
+
+    class Conexion {
+        -SocketConnection enchufe
+        -DataInputStream input
+        -DataOutputStream output
+        +Conexion(SocketConnection enchufe)
+        +recibeMensaje() string?
+        +enviaMensajeServidor(string msj) void
+        +cerrar() void
+    }
+
+    class Consola {
+        -Cliente cliente
+        -bool activo
+        -Mutex mutex$
+        +Consola(Cliente cliente)
+        +leerTerminal() void*
+        +mostrarMensaje(string texto)$ void
+        +mostrarLista(string[] mensajes)$ void
+        +desconectar() void
+    }
+
+    class ConsolaParser {
+        +parsearConsola(string linea)$ string?
+        -mostrarAyuda()$ void
+    }
+
+    class ConsolaBuilder {
+        +construyeLogin(string usuario)$ string
+        +construyeStatus(string status)$ string
+        +construyeUsuarios()$ string
+        +construyeTexto(string usuario, string mensaje)$ string
+        +construyePublico(string mensaje)$ string
+        +construyeCreaSala(string sala)$ string
+        +construyeInvitacion(string sala, string[] usuarios)$ string
+        +construyeUnirse(string sala)$ string
+        +construyeUsuariosSala(string sala)$ string
+        +construyeTextoSala(string sala, string mensaje)$ string
+        +construyeDejaSala(string sala)$ string
+        +construyeDesconectar()$ string
+    }
+
+    class MensajeAServidorBuilder {
+        -Json.Object raiz
+        +MensajeAServidorBuilder(string tipoMensaje)
+        +agregar(string llave, string valor) MensajeAServidorBuilder
+        +agregaListaUsuarios(string[] usuarios) MensajeAServidorBuilder
+        +construye() string
+    }
+
+    class MensajeDeServidorParser {
+        +procesarJSON(string json)$ Mensaje?
+    }
+
+    class Mensaje {
+        <<interface>>
+    }
+
+    class MensajeNuevoUsuario {
+        +string usuario
+        +MensajeNuevoUsuario(string usuario)
+    }
+
+    class MensajeNuevoStatus {
+        +string usuario
+        +string stat
+        +MensajeNuevoStatus(string usuario, string stat)
+    }
+
+    class MensajeListaUsuarios {
+        +string[] listado
+        +MensajeListaUsuarios(string[] listado)
+    }
+
+    class MensajeDesconectado {
+        +string nombre
+        +MensajeDesconectado(string nombre)
+    }
+
+    %% Relaciones Estructurales
+    Chat ..> Aplicacion : instancia
+    Aplicacion ..> Cliente : instancia y ejecuta
+    Cliente *-- Conexion : gestiona 
+    Consola --> Cliente : invoca enviar/desconectar
+    Cliente ..> Consola : instancia para hilo terminal
+
+    %% Procesamiento de Entrada (Terminal -> Red)
+    Consola ..> ConsolaParser : delega parseo
+    ConsolaParser ..> ConsolaBuilder : solicita construcción
+    ConsolaBuilder ..> MensajeAServidorBuilder : utiliza
+
+    %% Procesamiento de Recepción (Red -> Terminal)
+    Cliente ..> MensajeDeServidorParser : delega deserialización
+    Cliente ..> Consola : notifica eventos
+    MensajeDeServidorParser ..> Mensaje : crea instancias (muestra solo algunas)
+
+    %% Realización de Mensajes
+    MensajeNuevoUsuario ..|> Mensaje
+    MensajeNuevoStatus ..|> Mensaje
+    MensajeListaUsuarios ..|> Mensaje
+    MensajeDesconectado ..|> Mensaje
