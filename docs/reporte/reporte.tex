@@ -1,13 +1,20 @@
 \documentclass[11pt, a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
 \usepackage[a4paper, margin=2.5cm]{geometry}
-\usepackage{fontspec}
-\usepackage[spanish, bidi=basic, provide=*]{babel}
-\babelprovide[import, onchar=ids fonts, main]{spanish}
-\babelfont{rm}{Noto Sans}
+\usepackage[spanish, es-nodecimaldot]{babel}
+
+% Fuente Sans-Serif nativa garantizada en TeX Live
+\usepackage{lmodern}
+\renewcommand{\familydefault}{\sfdefault}
+
 \usepackage{enumitem}
 \setlist[itemize]{label=-}
-\usepackage{url}
-\usepackage{hyperref}
+
+\usepackage{graphicx}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
 
 \hypersetup{
     colorlinks=true,
