@@ -7,12 +7,10 @@ import (
 
 
 
-// gobyexample.com/interfaces
 type mensaje interface {
 	tipoMensaje() string
 }
 
-// https://gobyexample.com/json
 type mensajeBasico struct{
 	Type string `json:"type"`
 }
@@ -128,10 +126,7 @@ func (m mensajeDesconectado) tipoMensaje() string{
 	return m.Type
 }
 
-// https://go.dev/blog/json
-// https://go.dev/doc/effective_go#composite_literals
-//https://go.dev/doc/effective_go#allocation_new
-// https://stackoverflow.com/questions/18125625/constructors-in-go   idea para añadir valor inicial a map
+
 func procesaJSON(datos []byte) (mensaje, error){
 	var mensaje mensajeBasico
 	if err := json.Unmarshal(datos, &mensaje); err != nil{

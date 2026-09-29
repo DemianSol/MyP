@@ -23,14 +23,10 @@ const(
 	texto = "TEXT" // esto lo agergue
 )
 
-// https://gobyexample.com/json
 type mensajeAClienteBuilder struct{
 	data map[string]any
 }
 
-// https://go.dev/doc/effective_go#composite_literals
-//https://go.dev/doc/effective_go#allocation_new
-// https://stackoverflow.com/questions/18125625/constructors-in-go   idea para añadir valor inicial a map
 func newMensajeAClienteBuilder(tipoMensaje string) *mensajeAClienteBuilder {
 	m := new(mensajeAClienteBuilder)
 	m.data = make(map[string]any)

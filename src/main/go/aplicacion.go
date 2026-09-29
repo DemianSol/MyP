@@ -7,7 +7,7 @@ import (
 )
 
 
-func imprimeMensaje(mensaje string){ //probablemente está mal
+func imprimeMensaje(mensaje string){ 
      fmt.Println(mensaje)
 }
 
@@ -23,8 +23,7 @@ func validaPuerto(puerto string) bool{
 	return true
 }
 
-// go build -o proyecto1
-// go run main.go
+
 func uso(){
 	fmt.Fprint(os.Stderr, "Uso: ./proyecto1 <puerto>\n")
 	os.Exit(1)

@@ -1,5 +1,4 @@
-// modificación estructura/diseño   --- > agregar al siguiente commit 
-// cambio en inicia servidor      ----- > agregar al sigueinte commit 
+
 
 package main
 
@@ -19,14 +18,13 @@ const(
      BUSY status = "BUSY"
 )
 
-// https://go.dev/tour/concurrency/9
 
 type servidor struct{
      puerto string
      enchufe net.Listener
      contadorConexiones int
      conexiones map[*conexion]*usuario
-     clientes map[string]*usuario // cambiar para manejar clase de Vala
+     clientes map[string]*usuario 
      salas map[string]*sala
      conexionActiva bool
      mu sync.RWMutex
@@ -41,7 +39,6 @@ func newServidor(puerto string) *servidor{
      return &server
 }
 
-// ESTO FUE TOMADO DE GOBYEXAMPLE/TCP SERVER.COM  
 func (s *servidor) iniciaServidor() error{  
      var err error
      s.conexionActiva = true
@@ -53,8 +50,7 @@ func (s *servidor) iniciaServidor() error{
           }
      defer s.enchufe.Close()
 
-     // https://gobyexample.com/signals
-     // https://leapcell.medium.com/use-chan-os-signal-to-manage-os-signals-in-go-5b0d4d2818fb
+    
 
      señal := make(chan os.Signal, 1)
 	signal.Notify(señal, os.Interrupt, syscall.SIGTERM)
@@ -62,12 +58,12 @@ func (s *servidor) iniciaServidor() error{
      go func() {
 		<-señal
 		fmt.Println("\nCerrando servidor y liberando puerto\n")
-		s.enchufe.Close() // Cierra el listener TCP inmediatamente
+		s.enchufe.Close() 
 		os.Exit(0)
 	}()
 
      
-     fmt.Printf("Servidor escuchando\n") // creo que está mal   
+     fmt.Printf("Servidor escuchando\n") 
 
      for s.conexionActiva{
           conn, err := s.enchufe.Accept()
@@ -87,14 +83,9 @@ func (s *servidor) iniciaServidor() error{
      return nil
 }
 
-/*
-func (s *servidor) imprimeMensaje(mensaje string){ //probablemente está mal
-     fmt.Println(mensaje)
-}
-     */
+
 
 func (s *servidor) recibeMensajes(con *conexion){
-     // que hago cuando se termine? debo mandar mensaje de desconexion? 
      for {
           bytes, err := con.recibeMensaje()
           if err != nil{
@@ -110,7 +101,6 @@ func (s *servidor) recibeMensajes(con *conexion){
 }
 
 
-// https://go.dev/doc/effective_go#type_switch
 func (s *servidor) procesaMensaje(conex *conexion, msg mensaje) error{
      s.mu.Lock()
      defer s.mu.Unlock()
