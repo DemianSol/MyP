@@ -1,5 +1,4 @@
 
-// https://www.baeldung.com/java-read-input-until-condition
 
 public class Chat {
 

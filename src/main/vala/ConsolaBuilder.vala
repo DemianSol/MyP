@@ -8,6 +8,7 @@ public class ConsolaBuilder{
         .agregar("username", usuario);
 
         string msj = builder.construye();
+        Consola.mostrarMensaje(msj);
         return msj;
     }
 

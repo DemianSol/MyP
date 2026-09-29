@@ -26,23 +26,27 @@ public class Consola{
                 this.cliente.desconectar();
                 break;
             }
-            
-            var msj = ConsolaParser.parsearConsola(entrada);
-            if (msj != null){
-                this.cliente.enviar(msj);
-            }
 
             string texto = entrada.strip();
+
+            if (texto == null){
+                continue;
+            }
+
             if (texto == "/desconectar"){
                 this.activo = false;
                 this.cliente.desconectar();
                 break;
             }
+
+            var msj = ConsolaParser.parsearConsola(texto);
+            if (msj != null){
+                this.cliente.enviar(msj);
+            }
         }
         return null;
     }
 
-     // https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences
     public static void mostrarMensaje(string texto) {
         mutex.lock();
         try{

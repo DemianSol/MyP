@@ -1,5 +1,4 @@
 
-// https://valadoc.org/glib-2.0/string.down.html
 public class ConsolaParser{
 
     public static string? parsearConsola(string linea){
@@ -19,7 +18,8 @@ public class ConsolaParser{
                     Consola.mostrarMensaje("Uso: /conectarse <nombre_usuario>");
                     return null;
                 }
-                return ConsolaBuilder.construyeLogin(campos[1]);
+                string usuario = campos[1];
+                return ConsolaBuilder.construyeLogin(usuario);
 
             case "/estatus":
                 if (campos.length != 2){
