@@ -3,7 +3,6 @@ using GLib;
 
 public class MensajeDeServidorParser : GLib.Object {
 
-	// https://docs.vala.dev/sample-code/other/json-sample.html
 	public static Mensaje? procesarJSON (string json) throws Error{
 		var parser = new Json.Parser();
 		parser.load_from_data(json, -1);
@@ -39,7 +38,7 @@ public class MensajeDeServidorParser : GLib.Object {
 				}
 				return new MensajeListaUsuarios(usuarios);
 
-			case "TEXTO_FROM":
+			case "TEXT_FROM":
 				string user = msj.get_string_member("usarname");
 				string texto = msj.get_string_member("text");
 				return new MensajeTextoDe(user, texto);
@@ -87,7 +86,11 @@ public class MensajeDeServidorParser : GLib.Object {
 				string usuario = msj.get_string_member("username");
 				return new MensajeDesconectado(usuario);
 				
-			
+			case "INVITATION":
+				string usuario = msj.get_string_member("username");
+				string sala = msj.get_string_member("roomname");
+				return new MensajeInvitacion(usuario, sala);
+				
 			default:
 				throw new IOError.INVALID_DATA ("Tipo de mensaje es desconocido: %s", tipo);
 		}
