@@ -118,6 +118,16 @@ public class MensajeRespuesta : Object, Mensaje{
     }
 }
 
+public class MensajeInvitacion : Object, Mensaje{
+    public string usuario{get; set;}
+    public string sala{get; set;}
+
+    public MensajeInvitacion(string usuario, string sala){
+        this.usuario = usuario;
+        this.sala = sala;
+    }
+}
+
 
 public class MensajeDesconectado : Object, Mensaje{
     public string nombre{get; set;}
